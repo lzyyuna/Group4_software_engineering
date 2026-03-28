@@ -88,4 +88,4 @@ All data is **persisted locally and will not be lost after restarting the progra
 ---
 
 ## VIII. Developer
-Li Jingyu
+Li Jingyu  Luo Zhiyi
