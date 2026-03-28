@@ -9,11 +9,20 @@ public class JacksonDemo {
     public static void main(String[] args) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
 
-        Applicant applicant = new Applicant("A001", "Alice", "alice@test.com", "Java");
+        // 使用你真实存在的 7 参数构造器
+        Applicant applicant = new Applicant(
+                "TA-001",        // taId
+                "20260001",      // studentId
+                "Alice",         // name
+                "alice@test.com",// email
+                "Java Course",   // courses
+                "Java,English",  // skillTags
+                "13800138000"    // contact
+        );
 
         objectMapper.writerWithDefaultPrettyPrinter()
                 .writeValue(new File("data/applicant.json"), applicant);
 
-        System.out.println("JSON file saved.");
+        System.out.println("JSON file saved successfully!");
     }
 }

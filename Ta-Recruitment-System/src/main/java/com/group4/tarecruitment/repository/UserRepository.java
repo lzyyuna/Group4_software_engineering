@@ -26,7 +26,7 @@ public class UserRepository {
         if (Files.exists(CSV_PATH)) {
             loadFromCsv();
         } else {
-            // 初始化默认用户
+
             users.add(new User("ta001", "123456", "TA"));
             users.add(new User("mo001", "123456", "MO"));
             users.add(new User("admin001", "123456", "Admin"));
@@ -56,7 +56,7 @@ public class UserRepository {
             return false;
         }
 
-        // 这里我按“用户名全局唯一”处理
+        // 锟斤拷锟斤拷锟揭帮拷锟斤拷锟矫伙拷锟斤拷全锟斤拷唯一锟斤拷锟斤拷锟斤拷
         if (existsByUsername(username)) {
             return false;
         }
@@ -91,12 +91,12 @@ public class UserRepository {
             for (int i = 0; i < lines.size(); i++) {
                 String line = lines.get(i).trim();
 
-                // 跳过空行
+                // 锟斤拷锟斤拷锟斤拷锟斤拷
                 if (line.isEmpty()) {
                     continue;
                 }
 
-                // 跳过表头
+                // 锟斤拷锟斤拷锟斤拷头
                 if (i == 0 && line.equalsIgnoreCase("username,password,role")) {
                     continue;
                 }

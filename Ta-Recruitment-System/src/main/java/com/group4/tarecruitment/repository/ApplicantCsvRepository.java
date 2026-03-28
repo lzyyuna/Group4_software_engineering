@@ -23,27 +23,38 @@ public class ApplicantCsvRepository {
         List<Applicant> applicants = new ArrayList<>();
         File file = new File(FILE_PATH);
 
-        if (!file.exists()) return applicants;
+        if (!file.exists()) {
+            return applicants;
+        }
 
         try (CSVReader reader = new CSVReader(new FileReader(file))) {
             String[] line;
             boolean firstLine = true;
-
             while ((line = reader.readNext()) != null) {
                 if (firstLine) {
                     firstLine = false;
                     continue;
                 }
 
-                Applicant applicant;
-                if (line.length == 8) {
-                    applicant = new Applicant(
-                            line[0], line[1], line[2], line[3],
-                            line[4], line[5], line[6], line[7]
-                    );
-                } else {
-                    continue;
+                Applicant applicant = new Applicant();
+                applicant.setTaId(line[0]);
+                applicant.setStudentId(line[1]);
+                applicant.setName(line[2]);
+                applicant.setEmail(line[3]);
+                applicant.setCourses(line[4]);
+                applicant.setSkillTags(line[5]);
+                applicant.setContact(line[6]);
+
+                if (line.length > 7) {
+                    applicant.setPassword(line[7]);
                 }
+                if (line.length > 8) {
+                    applicant.setUsername(line[8]);
+                }
+                if (line.length > 9) {
+                    applicant.setResumePath(line[9]);
+                }
+
                 applicants.add(applicant);
             }
         }
@@ -52,13 +63,17 @@ public class ApplicantCsvRepository {
 
     public void saveAll(List<Applicant> applicants) throws Exception {
         File dir = new File("data");
-        if (!dir.exists()) dir.mkdir();
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
 
         try (CSVWriter writer = new CSVWriter(new FileWriter(FILE_PATH))) {
             writer.writeNext(new String[]{
                     "taId", "studentId", "name", "email",
-                    "courses", "skillTags", "contact", "password"
+                    "courses", "skillTags", "contact", "password",
+                    "username", "resumePath"
             });
+
             for (Applicant a : applicants) {
                 writer.writeNext(new String[]{
                         a.getTaId(),
@@ -68,9 +83,43 @@ public class ApplicantCsvRepository {
                         a.getCourses(),
                         a.getSkillTags(),
                         a.getContact(),
-                        a.getPassword()
+                        a.getPassword() == null ? "" : a.getPassword(),
+                        a.getUsername() == null ? "" : a.getUsername(),
+                        a.getResumePath() == null ? "" : a.getResumePath()
                 });
             }
         }
+    }
+
+    public void update(Applicant updatedApplicant) throws Exception {
+        List<Applicant> applicants = loadAll();
+        for (int i = 0; i < applicants.size(); i++) {
+            if (applicants.get(i).getTaId().equals(updatedApplicant.getTaId())) {
+                applicants.set(i, updatedApplicant);
+                saveAll(applicants);
+                return;
+            }
+        }
+    }
+
+    // 新增：根据用户名查找档案（登录绑定用）
+    public Applicant findByUsername(String username) throws Exception {
+        List<Applicant> applicants = loadAll();
+        for (Applicant a : applicants) {
+            if (username.equals(a.getUsername())) {
+                return a;
+            }
+        }
+        return null;
+    }
+
+    public Applicant findByStudentId(String studentId) throws Exception {
+        List<Applicant> applicants = loadAll();
+        for (Applicant a : applicants) {
+            if (studentId.equals(a.getStudentId())) {
+                return a;
+            }
+        }
+        return null;
     }
 }

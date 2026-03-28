@@ -13,22 +13,11 @@ public class Applicant {
     private String contact;
     private String password;
     private String resumePath;
+    private String username; // 新增：绑定登录账号
 
     public Applicant() {}
 
-    public Applicant(String taId, String studentId, String name, String email,
-                     String courses, String skillTags, String contact, String password) {
-        this.taId = taId;
-        this.studentId = studentId;
-        this.name = name;
-        this.email = email;
-        this.courses = courses;
-        this.skillTags = skillTags;
-        this.contact = contact;
-        this.password = password;
-        this.resumePath = "";
-    }
-
+    // 保留原有构造器
     public Applicant(String taId, String studentId, String name, String email,
                      String courses, String skillTags, String contact) {
         this.taId = taId;
@@ -42,9 +31,22 @@ public class Applicant {
         this.resumePath = "";
     }
 
-    public String getResumePath() { return resumePath; }
-    public void setResumePath(String resumePath) { this.resumePath = resumePath; }
+    // 新增：带 username 的构造器
+    public Applicant(String taId, String studentId, String name, String email,
+                     String courses, String skillTags, String contact, String username) {
+        this.taId = taId;
+        this.studentId = studentId;
+        this.name = name;
+        this.email = email;
+        this.courses = courses;
+        this.skillTags = skillTags;
+        this.contact = contact;
+        this.password = "";
+        this.resumePath = "";
+        this.username = username;
+    }
 
+    // 补全所有 getter/setter
     public String getTaId() { return taId; }
     public void setTaId(String taId) { this.taId = taId; }
 
@@ -68,4 +70,10 @@ public class Applicant {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getResumePath() { return resumePath; }
+    public void setResumePath(String resumePath) { this.resumePath = resumePath; }
+
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 }

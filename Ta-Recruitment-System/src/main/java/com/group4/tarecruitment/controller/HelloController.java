@@ -13,6 +13,11 @@ import java.util.List;
 
 public class HelloController {
     private final ApplicantService applicantService = new ApplicantService();
+    private String currentLoginUsername;
+
+    public void setCurrentLoginUsername(String username) {
+        this.currentLoginUsername = username;
+    }
 
     public void createProfile(TextField studentIdField, TextField nameField, TextField emailField,
                               TextField coursesField, CheckBox cbJava, CheckBox cbEnglish,
@@ -55,8 +60,10 @@ public class HelloController {
         }
 
         try {
+            // 修复：确保方法名和 ApplicantService 完全一致
             List<Applicant> allApplicants = applicantService.getAllApplicants();
             for (Applicant a : allApplicants) {
+                // 修复：确保 Applicant 类有 getStudentId() 方法
                 if (a.getStudentId().equals(studentId)) {
                     resultLabel.setStyle("-fx-text-fill: red;");
                     resultLabel.setText("Error: This student ID is already registered!");
@@ -67,10 +74,12 @@ public class HelloController {
             String taId = "TA-" + System.currentTimeMillis();
 
             Applicant applicant = new Applicant(taId, studentId, name, email, courses, skillStr, contact);
+            applicant.setUsername(currentLoginUsername);
+
             applicantService.addApplicant(applicant);
 
-            ProfileDetailView detailView = new ProfileDetailView(applicant);
             Stage stage = (Stage) submitBtn.getScene().getWindow();
+            ProfileDetailView detailView = new ProfileDetailView(applicant, stage);
             stage.getScene().setRoot(detailView.getView());
             stage.setTitle("Profile Details & Resume Upload");
 

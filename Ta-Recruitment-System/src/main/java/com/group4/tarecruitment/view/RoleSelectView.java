@@ -1,19 +1,18 @@
 package com.group4.tarecruitment.view;
 
+import com.group4.tarecruitment.model.Applicant;
+import com.group4.tarecruitment.service.ApplicantService;
 import com.group4.tarecruitment.service.AuthService;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class RoleSelectView {
-
     private final Stage stage;
     private final AuthService authService = new AuthService();
 
@@ -23,72 +22,64 @@ public class RoleSelectView {
 
     public Parent createContent() {
         Label title = new Label("TA Recruitment System");
-        title.setFont(new Font(22));
+        title.setFont(new Font(24));
         title.setStyle("-fx-font-weight: bold; -fx-text-fill: #2c3e50;");
 
-        Label subTitle = new Label("Login or register with username, password, and role");
-        subTitle.setStyle("-fx-font-size: 14px;");
+        Label subtitle = new Label("Login or register with username, password, and role");
+        subtitle.setFont(new Font(16));
+        subtitle.setStyle("-fx-text-fill: #34495e;");
 
         TextField usernameField = new TextField();
         usernameField.setPromptText("Enter username");
-        usernameField.setMaxWidth(240);
+        usernameField.setPrefWidth(300);
 
         PasswordField passwordField = new PasswordField();
         passwordField.setPromptText("Enter password");
-        passwordField.setMaxWidth(240);
+        passwordField.setPrefWidth(300);
 
-        Label messageLabel = new Label("");
-        messageLabel.setStyle("-fx-text-fill: red; -fx-font-size: 13px;");
+        Button loginTaBtn = new Button("Login as TA");
+        Button loginMoBtn = new Button("Login as MO");
+        Button loginAdminBtn = new Button("Login as Admin");
+        Button regTaBtn = new Button("Register as TA");
+        Button regMoBtn = new Button("Register as MO");
+        Button regAdminBtn = new Button("Register as Admin");
 
-        // ��¼��ť
-        Button taBtn = new Button("Login as TA");
-        Button moBtn = new Button("Login as MO");
-        Button adminBtn = new Button("Login as Admin");
+        Label messageLabel = new Label();
+        messageLabel.setStyle("-fx-text-fill: red; -fx-font-size: 14px;");
 
-        // ע�ᰴť
-        Button registerTaBtn = new Button("Register as TA");
-        Button registerMoBtn = new Button("Register as MO");
-        Button registerAdminBtn = new Button("Register as Admin");
+        // 登录按钮事件
+        loginTaBtn.setOnAction(e -> handleLogin(usernameField, passwordField, messageLabel, "TA"));
+        loginMoBtn.setOnAction(e -> handleLogin(usernameField, passwordField, messageLabel, "MO"));
+        loginAdminBtn.setOnAction(e -> handleLogin(usernameField, passwordField, messageLabel, "Admin"));
 
-        taBtn.setPrefWidth(240);
-        moBtn.setPrefWidth(240);
-        adminBtn.setPrefWidth(240);
+        // 注册按钮事件
+        regTaBtn.setOnAction(e -> handleRegister(usernameField, passwordField, messageLabel, "TA"));
+        regMoBtn.setOnAction(e -> handleRegister(usernameField, passwordField, messageLabel, "MO"));
+        regAdminBtn.setOnAction(e -> handleRegister(usernameField, passwordField, messageLabel, "Admin"));
 
-        registerTaBtn.setPrefWidth(240);
-        registerMoBtn.setPrefWidth(240);
-        registerAdminBtn.setPrefWidth(240);
-
-        taBtn.setOnAction(e -> handleLogin(usernameField, passwordField, messageLabel, "TA"));
-        moBtn.setOnAction(e -> handleLogin(usernameField, passwordField, messageLabel, "MO"));
-        adminBtn.setOnAction(e -> handleLogin(usernameField, passwordField, messageLabel, "Admin"));
-
-        registerTaBtn.setOnAction(e -> handleRegister(usernameField, passwordField, messageLabel, "TA"));
-        registerMoBtn.setOnAction(e -> handleRegister(usernameField, passwordField, messageLabel, "MO"));
-        registerAdminBtn.setOnAction(e -> handleRegister(usernameField, passwordField, messageLabel, "Admin"));
-
-        VBox root = new VBox(
-                12,
+        VBox root = new VBox(15);
+        root.setAlignment(Pos.CENTER);
+        root.setPadding(new Insets(40));
+        root.setStyle("-fx-background-color: #ecf0f1;");
+        root.getChildren().addAll(
                 title,
-                subTitle,
+                subtitle,
                 usernameField,
                 passwordField,
-                taBtn,
-                moBtn,
-                adminBtn,
-                registerTaBtn,
-                registerMoBtn,
-                registerAdminBtn,
+                loginTaBtn,
+                loginMoBtn,
+                loginAdminBtn,
+                regTaBtn,
+                regMoBtn,
+                regAdminBtn,
                 messageLabel
         );
-
-        root.setPadding(new Insets(40));
-        root.setStyle("-fx-alignment: center; -fx-background-color: #ecf0f1;");
 
         return root;
     }
 
-    private void handleLogin(TextField usernameField, PasswordField passwordField,
-                             Label messageLabel, String role) {
+    // 登录逻辑（完全保留你原来的验证逻辑）
+    private void handleLogin(TextField usernameField, PasswordField passwordField, Label messageLabel, String role) {
         String username = usernameField.getText().trim();
         String password = passwordField.getText().trim();
 
@@ -105,24 +96,36 @@ public class RoleSelectView {
 
         messageLabel.setText("");
 
-        switch (role) {
-            case "TA" -> {
-                HelloView helloView = new HelloView(stage);
-                stage.setScene(new Scene(helloView.createContent(), 800, 600));
+        if (role.equals("TA")) {
+            try {
+                ApplicantService applicantService = new ApplicantService();
+                Applicant existingApplicant = applicantService.getApplicantByUsername(username);
+
+                if (existingApplicant != null) {
+                    ProfileDetailView profileView = new ProfileDetailView(existingApplicant, stage);
+                    stage.getScene().setRoot(profileView.getView());
+                    stage.setTitle("My Profile");
+                } else {
+                    HelloView helloView = new HelloView(stage);
+                    helloView.setLoginUsername(username);
+                    stage.getScene().setRoot(helloView.createContent());
+                    stage.setTitle("Create Profile");
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                messageLabel.setText("Error loading profile: " + ex.getMessage());
             }
-            case "MO" -> {
-                TeacherView teacherView = new TeacherView(stage);
-                stage.setScene(new Scene(teacherView.createContent(), 800, 600));
-            }
-            case "Admin" -> {
-                AdminView adminView = new AdminView(stage);
-                stage.setScene(new Scene(adminView.createContent(), 800, 600));
-            }
+        } else if (role.equals("MO")) {
+            TeacherView teacherView = new TeacherView(stage);
+            stage.getScene().setRoot(teacherView.createContent());
+        } else if (role.equals("Admin")) {
+            AdminView adminView = new AdminView(stage);
+            stage.getScene().setRoot(adminView.createContent());
         }
     }
 
-    private void handleRegister(TextField usernameField, PasswordField passwordField,
-                                Label messageLabel, String role) {
+    // 注册逻辑（完全保留你原来的验证逻辑）
+    private void handleRegister(TextField usernameField, PasswordField passwordField, Label messageLabel, String role) {
         String username = usernameField.getText().trim();
         String password = passwordField.getText().trim();
 
@@ -132,16 +135,12 @@ public class RoleSelectView {
         }
 
         boolean success = authService.register(username, password, role);
-
-        if (!success) {
-            messageLabel.setText("Register failed. Username may already exist.");
-            return;
+        if (success) {
+            messageLabel.setStyle("-fx-text-fill: green;");
+            messageLabel.setText("Registration successful! Please login.");
+        } else {
+            messageLabel.setStyle("-fx-text-fill: red;");
+            messageLabel.setText("Registration failed: Username already exists or invalid input.");
         }
-
-        messageLabel.setStyle("-fx-text-fill: green; -fx-font-size: 13px;");
-        messageLabel.setText("Register success! You can now login as " + role + ".");
-
-        usernameField.clear();
-        passwordField.clear();
     }
 }

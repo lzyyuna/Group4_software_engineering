@@ -13,5 +13,15 @@
     "username": "a",
     "password": "1",
     "role": "Admin"
+  },
+  {
+    "username": "li",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "lijing",
+    "password": "123456",
+    "role": "TA"
   }
 ]

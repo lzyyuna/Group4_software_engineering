@@ -9,13 +9,16 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
-import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 public class ProfileDetailView {
     private final Applicant applicant;
+    private final Stage stage;  // 新增：用于页面跳转
 
-    public ProfileDetailView(Applicant applicant) {
+    // 构造器已修改，必须传入 stage
+    public ProfileDetailView(Applicant applicant, Stage stage) {
         this.applicant = applicant;
+        this.stage = stage;
     }
 
     public Parent getView() {
@@ -75,7 +78,31 @@ public class ProfileDetailView {
         VBox resumeBox = new VBox(8, resumeTitle, btnBox, progressBar, resumeStatus, resumePathLabel);
         resumeBox.setStyle("-fx-padding:15; -fx-background-color:#f8f9fa;");
 
-        VBox root = new VBox(15, title, infoGrid, new Separator(), resumeBox);
+        // ===================== 【新增】查看可申请岗位按钮 =====================
+        Button jobListBtn = new Button("查看可申请岗位");
+        jobListBtn.setStyle("-fx-font-size: 14px; -fx-padding: 8px 15px;");
+        jobListBtn.setOnAction(e -> {
+            // 跳转到岗位列表页面
+            JobListView jobListView = new JobListView(stage, applicant);
+            stage.getScene().setRoot(jobListView.createContent());
+            stage.setTitle("Available Positions - TA Recruitment");
+        });
+
+        // ===================== 【新增】返回登录注册页面按钮 =====================
+        Button backToLoginBtn = new Button("返回登录注册页面");
+        backToLoginBtn.setStyle("-fx-font-size: 14px; -fx-padding: 8px 15px;");
+        backToLoginBtn.setOnAction(e -> {
+            RoleSelectView roleSelectView = new RoleSelectView(stage);
+            stage.getScene().setRoot(roleSelectView.createContent());
+            stage.setTitle("TA Recruitment System");
+        });
+
+        // 把两个按钮放在同一行，更美观
+        HBox buttonBox = new HBox(15, jobListBtn, backToLoginBtn);
+        buttonBox.setPadding(new Insets(10, 0, 0, 0));
+
+        // 把按钮加入界面
+        VBox root = new VBox(15, title, infoGrid, new Separator(), resumeBox, buttonBox);
         root.setPadding(new Insets(20));
         return root;
     }

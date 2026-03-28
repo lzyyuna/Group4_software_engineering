@@ -1,0 +1,5 @@
+jobId,courseName,positionType,weeklyWorkload,moName,status,releaseTime,skillRequirements,jobContent,deadline
+JOB-001,Java Programming,Full-Time,10,Dr.Wang,Recruiting,2026-03-20 10:00:00,Java,Assist in grading assignments and holding tutorials,2026-04-10
+JOB-002,English Writing,Part-Time,5,Dr.Li,Recruiting,2026-03-21 14:00:00,English,Help with essay feedback and peer reviews,2026-04-15
+JOB-003,Python Data Analysis,Full-Time,8,Dr.Zhang,Recruiting,2026-03-22 09:30:00,Python,Assist with lab sessions and data visualization tasks,2026-04-20
+JOB-004,Office Administration,Part-Time,6,Dr.Liu,Recruiting,2026-03-23 16:00:00,Office,Manage course materials and student inquiries,2026-04-25

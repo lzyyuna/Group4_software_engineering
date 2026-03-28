@@ -11,32 +11,30 @@ public class ApplicantService {
     private final ApplicantCsvRepository csvRepo = new ApplicantCsvRepository();
     private final ApplicantJsonRepository jsonRepo = new ApplicantJsonRepository();
 
-    // 新增申请者
+    // 获取所有申请者
+    public List<Applicant> getAllApplicants() throws Exception {
+        return csvRepo.loadAll();
+    }
+
+    // 根据学号获取
+    public Applicant getApplicantByStudentId(String studentId) throws Exception {
+        return csvRepo.findByStudentId(studentId);
+    }
+
+    // 添加申请者（同时保存到 CSV 和 JSON）
     public void addApplicant(Applicant applicant) throws Exception {
         csvRepo.save(applicant);
         jsonRepo.save(applicant);
     }
 
-    // 查询所有申请者
-    public List<Applicant> getAllApplicants() throws Exception {
-        return csvRepo.loadAll();
-    }
-
-    // 按学号查询申请者（编辑档案用，TA-001验收标准4）
-    public Applicant getApplicantByStudentId(String studentId) throws Exception {
-        List<Applicant> applicants = csvRepo.loadAll();
-        Optional<Applicant> optional = applicants.stream().filter(a -> a.getStudentId().equals(studentId)).findFirst();
-        return optional.orElse(null);
-    }
-
-    // 更新申请者信息（同步到JSON/CSV，TA-001验收标准4）
+    // 更新申请者信息
     public void updateApplicant(Applicant applicant) throws Exception {
-        List<Applicant> applicants = csvRepo.loadAll();
-        // 删除原数据，添加新数据
-        applicants.removeIf(a -> a.getStudentId().equals(applicant.getStudentId()));
-        applicants.add(applicant);
-        // 重新保存到文件
-        csvRepo.saveAll(applicants);
-        jsonRepo.saveAll(applicants);
+        csvRepo.update(applicant);
+        jsonRepo.update(applicant);
+    }
+
+    // 按用户名查询（登录绑定档案用）
+    public Applicant getApplicantByUsername(String username) throws Exception {
+        return csvRepo.findByUsername(username);
     }
 }
