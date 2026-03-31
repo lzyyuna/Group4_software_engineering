@@ -1,69 +1,62 @@
-# Teaching Assistant Recruitment System
-
-## 1. Project Overview
-
-The Teaching Assistant Recruitment System is a lightweight software application designed for BUPT International School to support the recruitment process of Teaching Assistants (TAs).
-
-The system digitises the original manual workflow based on forms and Excel files. It provides functions for job posting, job application, application processing, and workload management. This project is developed as part of the EBU6304 Software Engineering Group Project and follows Agile development practices.
-
-## 2. Project Background
-
-According to the project handout, BUPT International School recruits Teaching Assistants every semester to support academic modules and other activities such as invigilation. The current process mainly relies on forms and Excel files, which makes the workflow inefficient. This project aims to build a simple, clear, and extensible software system to improve that process.
-
-## 3. User Roles
-
-### Teaching Assistant (TA)
-- Create and manage personal profiles
-- Upload CV
-- Browse available jobs
-- Apply for jobs
-- Check application status
-
-### Module Organiser (MO)
-- Post TA job positions
-- Review applications
-- Select suitable applicants
-- Manage recruitment results
-
-### Administrator (Admin)
-- Monitor overall TA workload
-- Manage recruitment records
-- Support task allocation
-
-## 4. Core Features
-
-### Applicant Management
-- Profile creation and maintenance
-- CV upload
-- Personal information update
-
-### Job Management
-- Job posting
-- Job browsing
-- Job application
-
-### Recruitment Management
-- Application review
-- Candidate selection
-- Status tracking
-
-### Workload Management
-- Record TA assignments
-- Avoid workload imbalance
-
-## 5. Development Methodology
-
-This project follows Agile / Scrum practices and is developed through multiple iterations. The development process covers requirements analysis, design, implementation, and testing, with continuous improvement based on feedback.
-
-## 6. Technology Stack
-
-- Language: Java
-- Application Type: Stand-alone Java application or Java Servlet/JSP web application
-- Data Storage: Text-based files such as TXT, CSV, JSON, or XML
-- Version Control: GitHub
-- Development Methodology: Agile / Scrum
-
-According to the coursework requirements, the system does not use a database. All input and output data are stored in simple text file formats.
-
-## 7. Project Structure
-
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="7ac5c944-08c3-4f0e-b946-ec8258a0b9ac" name="更改" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 7
+}]]></component>
+  <component name="ProjectId" id="3BiZ5H7ErXLjFZOD2d3dqRjccfo" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/20278/Desktop/Ta-Recruitment-System最新版",
+    "应用程序.HelloFxApp.executor": "Run"
+  }
+}]]></component>
+  <component name="RunManager">
+    <configuration name="HelloFxApp" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="ALTERNATIVE_JRE_PATH" value="21" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="MAIN_CLASS_NAME" value="com.group4.tarecruitment.HelloFxApp" />
+      <module name="ta-recruitment-system" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.group4.tarecruitment.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="应用程序.HelloFxApp" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="7ac5c944-08c3-4f0e-b946-ec8258a0b9ac" name="更改" comment="" />
+      <created>1774973665222</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1774973665222</updated>
+    </task>
+    <servers />
+  </component>
+</project>
