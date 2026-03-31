@@ -23,5 +23,55 @@
     "username": "lijing",
     "password": "123456",
     "role": "TA"
+  },
+  {
+    "username": "hm",
+    "password": "111111",
+    "role": "MO"
+  },
+  {
+    "username": "yn",
+    "password": "111111",
+    "role": "TA"
+  },
+  {
+    "username": "huang",
+    "password": "123456",
+    "role": "MO"
+  },
+  {
+    "username": "jing",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "zhi",
+    "password": "123456",
+    "role": "Admin"
+  },
+  {
+    "username": "yu",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "yi",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "ZHIGG",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "w1",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "y1",
+    "password": "123456",
+    "role": "TA"
   }
 ]

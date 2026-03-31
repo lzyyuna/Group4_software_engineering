@@ -122,4 +122,15 @@ public class ApplicantCsvRepository {
         }
         return null;
     }
+
+    // 根据TA ID查找申请者
+    public Applicant findById(String taId) throws Exception {
+        List<Applicant> applicants = loadAll();
+        for (Applicant a : applicants) {
+            if (taId.equals(a.getTaId())) {
+                return a;
+            }
+        }
+        return null;
+    }
 }

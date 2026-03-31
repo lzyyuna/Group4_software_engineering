@@ -37,4 +37,9 @@ public class ApplicantService {
     public Applicant getApplicantByUsername(String username) throws Exception {
         return csvRepo.findByUsername(username);
     }
+
+    // 根据ID获取申请者
+    public Applicant getApplicantById(String id) throws Exception {
+        return csvRepo.findById(id);
+    }
 }

@@ -1,5 +1,4 @@
-jobId,courseName,positionType,weeklyWorkload,moName,status,releaseTime,skillRequirements,jobContent,deadline
-JOB-001,Java Programming,Full-Time,10,Dr.Wang,Recruiting,2026-03-20 10:00:00,Java,Assist in grading assignments and holding tutorials,2026-04-10
-JOB-002,English Writing,Part-Time,5,Dr.Li,Recruiting,2026-03-21 14:00:00,English,Help with essay feedback and peer reviews,2026-04-15
-JOB-003,Python Data Analysis,Full-Time,8,Dr.Zhang,Recruiting,2026-03-22 09:30:00,Python,Assist with lab sessions and data visualization tasks,2026-04-20
-JOB-004,Office Administration,Part-Time,6,Dr.Liu,Recruiting,2026-03-23 16:00:00,Office,Manage course materials and student inquiries,2026-04-25
+"jobId","courseName","positionType","weeklyWorkload","moName","moEmail","status","releaseTime","skillRequirements","jobContent","deadline"
+"JOB-c4870e8e","math","Module TA","40","mo","mo@bupt.edu","Closed","2026-03-29 17:26:24","math grade>90","help student","5.2"
+"JOB-5f77efa1","java","Module TA","40","mo","mo@bupt.edu","Recruiting","2026-03-29 17:31:43","java grade>90","help teacher","5.5"
+"JOB-748008e9","math","Module TA","13","huang","huang@bupt.edu","Recruiting","2026-03-31 23:31:18","math skill","","2026-9"

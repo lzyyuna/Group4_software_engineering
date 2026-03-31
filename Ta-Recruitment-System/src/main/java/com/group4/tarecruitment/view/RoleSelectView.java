@@ -102,10 +102,12 @@ public class RoleSelectView {
                 Applicant existingApplicant = applicantService.getApplicantByUsername(username);
 
                 if (existingApplicant != null) {
-                    ProfileDetailView profileView = new ProfileDetailView(existingApplicant, stage);
-                    stage.getScene().setRoot(profileView.getView());
-                    stage.setTitle("My Profile");
+                    // =============== 【已修改】有档案 → 跳转到 TA Dashboard ===============
+                    TAHomeView taHomeView = new TAHomeView(stage, existingApplicant);
+                    stage.getScene().setRoot(taHomeView.createContent());
+                    stage.setTitle("TA Dashboard");
                 } else {
+                    // =============== 无档案 → 跳转到创建档案页（不变） ===============
                     HelloView helloView = new HelloView(stage);
                     helloView.setLoginUsername(username);
                     stage.getScene().setRoot(helloView.createContent());
@@ -116,7 +118,7 @@ public class RoleSelectView {
                 messageLabel.setText("Error loading profile: " + ex.getMessage());
             }
         } else if (role.equals("MO")) {
-            TeacherView teacherView = new TeacherView(stage);
+            TeacherView teacherView = new TeacherView(stage, username);
             stage.getScene().setRoot(teacherView.createContent());
         } else if (role.equals("Admin")) {
             AdminView adminView = new AdminView(stage);

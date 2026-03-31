@@ -4,6 +4,7 @@ import com.group4.tarecruitment.model.Applicant;
 import com.group4.tarecruitment.model.Job;
 import com.group4.tarecruitment.service.JobService;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -28,19 +29,25 @@ public class JobListView {
     public Parent createContent() {
         Label title = new Label("可申请 TA 岗位列表");
         title.setFont(new Font(18));
-        title.setStyle("-fx-font-weight: bold;");
+        title.setStyle("-fx-font-weight: bold; -fx-text-fill: #2c3e50;");
 
-        // 顶部按钮栏：刷新列表 + 我的申请记录 + 返回档案
+        // 按钮统一美化
         Button refreshBtn = new Button("刷新列表");
         Button myAppsBtn = new Button("我的申请记录");
-        // 【新增】返回个人档案按钮
-        Button backToProfileBtn = new Button("返回个人档案");
-        HBox topBar = new HBox(10, refreshBtn, myAppsBtn, backToProfileBtn);
+        Button backToHomeBtn = new Button("返回TA首页");
 
-        // 岗位列表区域
+        String btnStyle = "-fx-font-size: 14px; -fx-padding: 7 14; -fx-background-radius: 5; -fx-font-weight: bold;";
+        refreshBtn.setStyle(btnStyle + "-fx-background-color: #3498db; -fx-text-fill: white;");
+        myAppsBtn.setStyle(btnStyle + "-fx-background-color: #9b59b6; -fx-text-fill: white;");
+        backToHomeBtn.setStyle(btnStyle + "-fx-background-color: #2ecc71; -fx-text-fill: white;");
+
+        HBox topBar = new HBox(10, refreshBtn, myAppsBtn, backToHomeBtn);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+
+        // 列表容器美化
         VBox jobListBox = new VBox(10);
-        jobListBox.setPadding(new Insets(10));
-        jobListBox.setStyle("-fx-background-color: #f8f9fa;");
+        jobListBox.setPadding(new Insets(15));
+        jobListBox.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 8;");
 
         // 分页按钮
         HBox pageBox = new HBox(10);
@@ -48,7 +55,7 @@ public class JobListView {
         Button nextBtn = new Button("下一页");
         Label pageLabel = new Label("第 1 页");
         pageBox.getChildren().addAll(prevBtn, pageLabel, nextBtn);
-        pageBox.setStyle("-fx-alignment: center;");
+        pageBox.setAlignment(Pos.CENTER);
 
         // 加载数据
         loadJobs(jobListBox, pageLabel);
@@ -58,11 +65,11 @@ public class JobListView {
             MyApplicationView myAppView = new MyApplicationView(stage, applicant);
             stage.getScene().setRoot(myAppView.createContent());
         });
-        // 【新增】返回档案页面逻辑
-        backToProfileBtn.setOnAction(e -> {
-            ProfileDetailView profileView = new ProfileDetailView(applicant, stage);
-            stage.getScene().setRoot(profileView.getView());
-            stage.setTitle("Profile Details & Resume Upload");
+
+        backToHomeBtn.setOnAction(e -> {
+            TAHomeView taHomeView = new TAHomeView(stage, applicant);
+            stage.getScene().setRoot(taHomeView.createContent());
+            stage.setTitle("TA Dashboard");
         });
 
         prevBtn.setOnAction(e -> {
@@ -82,7 +89,8 @@ public class JobListView {
         });
 
         VBox root = new VBox(15, title, topBar, jobListBox, new Separator(), pageBox);
-        root.setPadding(new Insets(20));
+        root.setPadding(new Insets(25));
+        root.setStyle("-fx-background-color: #f5f6fa;");
         return root;
     }
 
@@ -96,26 +104,32 @@ public class JobListView {
             List<Job> pageJobs = activeJobs.subList(start, end);
 
             if (pageJobs.isEmpty()) {
-                jobListBox.getChildren().add(new Label("暂无可申请岗位"));
+                Label emptyLabel = new Label("暂无可申请岗位");
+                emptyLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #7f8c8d;");
+                jobListBox.getChildren().add(emptyLabel);
                 return;
             }
 
             for (Job job : pageJobs) {
                 HBox jobItem = new HBox(15);
-                jobItem.setStyle("-fx-padding: 10; -fx-background-color: white; -fx-border-radius: 5;");
-                jobItem.getChildren().addAll(
-                        new Label("ID: " + job.getJobId()),
-                        new Label("课程: " + job.getCourseName()),
-                        new Label("类型: " + job.getPositionType()),
-                        new Label("周工作量: " + job.getWeeklyWorkload() + "h"),
-                        new Label("MO: " + job.getMoName())
-                );
+                jobItem.setAlignment(Pos.CENTER_LEFT);
+                jobItem.setStyle("-fx-padding: 12; -fx-background-color: white; -fx-background-radius: 6; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 4,0,0,1);");
+
+                Label idLabel = new Label("ID: " + job.getJobId());
+                Label courseLabel = new Label("课程: " + job.getCourseName());
+                Label typeLabel = new Label("类型: " + job.getPositionType());
+                Label workloadLabel = new Label("周工作量: " + job.getWeeklyWorkload() + "h");
+                Label moLabel = new Label("MO: " + job.getMoName());
+
                 Button detailBtn = new Button("查看详情");
+                detailBtn.setStyle("-fx-font-size: 13px; -fx-padding: 6 12; -fx-background-color: #3498db; -fx-text-fill: white; -fx-background-radius: 5;");
+
                 detailBtn.setOnAction(e -> {
                     JobDetailView detailView = new JobDetailView(stage, applicant, job);
                     stage.getScene().setRoot(detailView.createContent());
                 });
-                jobItem.getChildren().add(detailBtn);
+
+                jobItem.getChildren().addAll(idLabel, courseLabel, typeLabel, workloadLabel, moLabel, detailBtn);
                 jobListBox.getChildren().add(jobItem);
             }
             pageLabel.setText(String.format("第 %d / %d 页", currentPage, totalPages));

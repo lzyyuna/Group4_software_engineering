@@ -76,4 +76,9 @@ public class Applicant {
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
+
+    // 别名方法，用于兼容不同命名
+    public String getPhone() { return contact; }
+    public String getSkills() { return skillTags; }
+    public String getCvPath() { return resumePath; }
 }

@@ -23,10 +23,10 @@ public class JobRepository {
             boolean firstLine = true;
             while ((line = reader.readNext()) != null) {
                 if (firstLine) { firstLine = false; continue; }
-                if (line.length < 10) continue;
+                if (line.length < 11) continue;
                 Job job = new Job(
                         line[0], line[1], line[2], Integer.parseInt(line[3]),
-                        line[4], line[5], line[6], line[7], line[8], line[9]
+                        line[4], line[5], line[6], line[7], line[8], line[9], line[10]
                 );
                 jobs.add(job);
             }
@@ -40,14 +40,14 @@ public class JobRepository {
         try (CSVWriter writer = new CSVWriter(new FileWriter(FILE_PATH))) {
             writer.writeNext(new String[]{
                     "jobId", "courseName", "positionType", "weeklyWorkload",
-                    "moName", "status", "releaseTime", "skillRequirements",
+                    "moName", "moEmail", "status", "releaseTime", "skillRequirements",
                     "jobContent", "deadline"
             });
             for (Job j : jobs) {
                 writer.writeNext(new String[]{
                         j.getJobId(), j.getCourseName(), j.getPositionType(),
                         String.valueOf(j.getWeeklyWorkload()), j.getMoName(),
-                        j.getStatus(), j.getReleaseTime(), j.getSkillRequirements(),
+                        j.getMoEmail(), j.getStatus(), j.getReleaseTime(), j.getSkillRequirements(),
                         j.getJobContent(), j.getDeadline()
                 });
             }

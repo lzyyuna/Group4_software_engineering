@@ -1,8 +1,8 @@
 package com.group4.tarecruitment.view;
 
-import com.group4.tarecruitment.controller.ProfileController;
 import com.group4.tarecruitment.model.Applicant;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
@@ -13,97 +13,88 @@ import javafx.stage.Stage;
 
 public class ProfileDetailView {
     private final Applicant applicant;
-    private final Stage stage;  // 新增：用于页面跳转
+    private final Stage stage;
 
-    // 构造器已修改，必须传入 stage
     public ProfileDetailView(Applicant applicant, Stage stage) {
         this.applicant = applicant;
         this.stage = stage;
     }
 
     public Parent getView() {
-        ProfileController controller = new ProfileController();
+        // 标题美化
+        Label title = new Label("个人详情");
+        title.setFont(new Font(22));
+        title.setStyle("-fx-font-weight: bold; -fx-text-fill: #2c3e50;");
 
-        Label title = new Label("✅ 档案创建成功 | 个人详情 & 简历上传");
-        title.setFont(new Font(18));
-        title.setStyle("-fx-font-weight:bold; -fx-text-fill: #2ecc71;");
+        // 信息卡片容器（美化背景+内边距）
+        VBox infoCard = new VBox(15);
+        infoCard.setPadding(new Insets(30));
+        infoCard.setStyle(
+                "-fx-background-color: #ffffff; " +
+                        "-fx-background-radius: 10; " +
+                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 4);"
+        );
 
+        // 信息网格（两列对齐，美观排版）
         GridPane infoGrid = new GridPane();
-        infoGrid.setHgap(10);
-        infoGrid.setVgap(12);
-        infoGrid.setPadding(new Insets(10));
+        infoGrid.setHgap(30);
+        infoGrid.setVgap(18);
+        infoGrid.setAlignment(Pos.CENTER_LEFT);
 
-        infoGrid.add(new Label("TA ID："), 0, 0);
-        infoGrid.add(new Label(applicant.getTaId()), 1, 0);
+        // 标签样式统一
+        String labelStyle = "-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #34495e;";
+        String valueStyle = "-fx-font-size: 16px; -fx-text-fill: #2c3e50;";
 
-        infoGrid.add(new Label("学号："), 0, 1);
-        infoGrid.add(new Label(applicant.getStudentId()), 1, 1);
+        // 逐行添加信息（完全对应你提供的截图）
+        addInfoRow(infoGrid, 0, "TA ID：", applicant.getTaId(), labelStyle, valueStyle);
+        addInfoRow(infoGrid, 1, "学号：", applicant.getStudentId(), labelStyle, valueStyle);
+        addInfoRow(infoGrid, 2, "姓名：", applicant.getName(), labelStyle, valueStyle);
+        addInfoRow(infoGrid, 3, "邮箱：", applicant.getEmail(), labelStyle, valueStyle);
+        addInfoRow(infoGrid, 4, "可授课程：", applicant.getCourses(), labelStyle, valueStyle);
+        addInfoRow(infoGrid, 5, "技能标签：", applicant.getSkillTags(), labelStyle, valueStyle);
+        addInfoRow(infoGrid, 6, "联系电话：", applicant.getContact(), labelStyle, valueStyle);
 
-        infoGrid.add(new Label("姓名："), 0, 2);
-        infoGrid.add(new Label(applicant.getName()), 1, 2);
+        infoCard.getChildren().add(infoGrid);
 
-        infoGrid.add(new Label("邮箱："), 0, 3);
-        infoGrid.add(new Label(applicant.getEmail()), 1, 3);
-
-        infoGrid.add(new Label("可授课程："), 0, 4);
-        infoGrid.add(new Label(applicant.getCourses()), 1, 4);
-
-        infoGrid.add(new Label("技能标签："), 0, 5);
-        infoGrid.add(new Label(applicant.getSkillTags()), 1, 5);
-
-        infoGrid.add(new Label("联系电话："), 0, 6);
-        infoGrid.add(new Label(applicant.getContact()), 1, 6);
-
-        // 简历区域 ==========================================
-        Label resumeTitle = new Label("📎 简历上传（支持 txt/pdf/doc/docx，最大10MB）");
-        resumeTitle.setStyle("-fx-font-weight:bold;");
-
-        Button uploadBtn = new Button("上传简历");
-        Button replaceBtn = new Button("替换简历");
-        Label resumeStatus = new Label("状态：未上传");
-        Label resumePathLabel = new Label("文件：无");
-        ProgressBar progressBar = new ProgressBar(0);
-        progressBar.setVisible(false);
-
-        HBox btnBox = new HBox(10, uploadBtn, replaceBtn);
-        btnBox.setPadding(new Insets(5, 0, 5, 0));
-
-        uploadBtn.setOnAction(e -> {
-            controller.uploadResume(applicant, resumeStatus, resumePathLabel, progressBar);
-        });
-        replaceBtn.setOnAction(e -> {
-            controller.uploadResume(applicant, resumeStatus, resumePathLabel, progressBar);
+        // 返回TA首页按钮（仅保留这一个按钮）
+        Button backToHomeBtn = new Button("返回TA首页");
+        backToHomeBtn.setStyle(
+                "-fx-font-size: 14px; " +
+                        "-fx-padding: 10px 25px; " +
+                        "-fx-background-color: #3498db; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-background-radius: 5;"
+        );
+        backToHomeBtn.setOnAction(e -> {
+            TAHomeView taHomeView = new TAHomeView(stage, applicant);
+            stage.getScene().setRoot(taHomeView.createContent());
+            stage.setTitle("TA Dashboard");
         });
 
-        VBox resumeBox = new VBox(8, resumeTitle, btnBox, progressBar, resumeStatus, resumePathLabel);
-        resumeBox.setStyle("-fx-padding:15; -fx-background-color:#f8f9fa;");
+        // 按钮居中布局
+        HBox buttonBox = new HBox(backToHomeBtn);
+        buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.setPadding(new Insets(25, 0, 0, 0));
 
-        // ===================== 【新增】查看可申请岗位按钮 =====================
-        Button jobListBtn = new Button("查看可申请岗位");
-        jobListBtn.setStyle("-fx-font-size: 14px; -fx-padding: 8px 15px;");
-        jobListBtn.setOnAction(e -> {
-            // 跳转到岗位列表页面
-            JobListView jobListView = new JobListView(stage, applicant);
-            stage.getScene().setRoot(jobListView.createContent());
-            stage.setTitle("Available Positions - TA Recruitment");
-        });
+        // 根布局（整体居中+背景色）
+        VBox root = new VBox(25, title, infoCard, buttonBox);
+        root.setPadding(new Insets(40));
+        root.setAlignment(Pos.CENTER);
+        root.setStyle("-fx-background-color: #f5f6fa;");
 
-        // ===================== 【新增】返回登录注册页面按钮 =====================
-        Button backToLoginBtn = new Button("返回登录注册页面");
-        backToLoginBtn.setStyle("-fx-font-size: 14px; -fx-padding: 8px 15px;");
-        backToLoginBtn.setOnAction(e -> {
-            RoleSelectView roleSelectView = new RoleSelectView(stage);
-            stage.getScene().setRoot(roleSelectView.createContent());
-            stage.setTitle("TA Recruitment System");
-        });
-
-        // 把两个按钮放在同一行，更美观
-        HBox buttonBox = new HBox(15, jobListBtn, backToLoginBtn);
-        buttonBox.setPadding(new Insets(10, 0, 0, 0));
-
-        // 把按钮加入界面
-        VBox root = new VBox(15, title, infoGrid, new Separator(), resumeBox, buttonBox);
-        root.setPadding(new Insets(20));
         return root;
+    }
+
+    // 工具方法：统一添加信息行，避免重复代码
+    private void addInfoRow(GridPane grid, int row, String labelText, String valueText, String labelStyle, String valueStyle) {
+        Label label = new Label(labelText);
+        label.setStyle(labelStyle);
+
+        Label value = new Label(valueText);
+        value.setStyle(valueStyle);
+
+        grid.add(label, 0, row);
+        grid.add(value, 1, row);
     }
 }

@@ -3,6 +3,7 @@ package com.group4.tarecruitment.controller;
 import com.group4.tarecruitment.model.Applicant;
 import com.group4.tarecruitment.service.ApplicantService;
 import com.group4.tarecruitment.view.ProfileDetailView;
+import com.group4.tarecruitment.view.TAHomeView;  // ✅ 新增：导入TAHomeView
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -60,10 +61,8 @@ public class HelloController {
         }
 
         try {
-            // 修复：确保方法名和 ApplicantService 完全一致
             List<Applicant> allApplicants = applicantService.getAllApplicants();
             for (Applicant a : allApplicants) {
-                // 修复：确保 Applicant 类有 getStudentId() 方法
                 if (a.getStudentId().equals(studentId)) {
                     resultLabel.setStyle("-fx-text-fill: red;");
                     resultLabel.setText("Error: This student ID is already registered!");
@@ -79,9 +78,10 @@ public class HelloController {
             applicantService.addApplicant(applicant);
 
             Stage stage = (Stage) submitBtn.getScene().getWindow();
-            ProfileDetailView detailView = new ProfileDetailView(applicant, stage);
-            stage.getScene().setRoot(detailView.getView());
-            stage.setTitle("Profile Details & Resume Upload");
+            // ✅ 修正：跳转到TAHomeView（TA Dashboard）
+            TAHomeView taHomeView = new TAHomeView(stage, applicant);
+            stage.getScene().setRoot(taHomeView.createContent());
+            stage.setTitle("TA Dashboard");
 
         } catch (Exception e) {
             resultLabel.setStyle("-fx-text-fill: red;");
