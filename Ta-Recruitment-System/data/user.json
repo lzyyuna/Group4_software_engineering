@@ -73,5 +73,45 @@
     "username": "y1",
     "password": "123456",
     "role": "TA"
+  },
+  {
+    "username": "111",
+    "password": "111",
+    "role": "MO"
+  },
+  {
+    "username": "admin",
+    "password": "111",
+    "role": "Admin"
+  },
+  {
+    "username": "111222",
+    "password": "111",
+    "role": "TA"
+  },
+  {
+    "username": "223",
+    "password": "223",
+    "role": "TA"
+  },
+  {
+    "username": "222",
+    "password": "222",
+    "role": "MO"
+  },
+  {
+    "username": "2223",
+    "password": "2223",
+    "role": "MO"
+  },
+  {
+    "username": "123",
+    "password": "123",
+    "role": "TA"
+  },
+  {
+    "username": "lzy111",
+    "password": "123",
+    "role": "TA"
   }
 ]
