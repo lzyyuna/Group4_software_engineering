@@ -29,9 +29,9 @@ public class ProfileDetailView {
         return createDisplayView();
     }
 
-    // ===================== 展示模式 =====================
+    // ===================== Display Mode =====================
     private Parent createDisplayView() {
-        Label title = new Label("个人详情");
+        Label title = new Label("Profile Details");
         title.setFont(new Font(22));
         title.setStyle("-fx-font-weight: bold; -fx-text-fill: #2c3e50;");
 
@@ -51,17 +51,17 @@ public class ProfileDetailView {
         String labelStyle = "-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #34495e;";
         String valueStyle = "-fx-font-size: 16px; -fx-text-fill: #2c3e50;";
 
-        addInfoRow(infoGrid, 0, "TA ID：", safe(applicant.getTaId()), labelStyle, valueStyle);
-        addInfoRow(infoGrid, 1, "学号：", safe(applicant.getStudentId()), labelStyle, valueStyle);
-        addInfoRow(infoGrid, 2, "姓名：", safe(applicant.getName()), labelStyle, valueStyle);
-        addInfoRow(infoGrid, 3, "邮箱：", safe(applicant.getEmail()), labelStyle, valueStyle);
-        addInfoRow(infoGrid, 4, "可授课程：", safe(applicant.getCourses()), labelStyle, valueStyle);
-        addInfoRow(infoGrid, 5, "技能标签：", safe(applicant.getSkillTags()), labelStyle, valueStyle);
-        addInfoRow(infoGrid, 6, "联系电话：", safe(applicant.getContact()), labelStyle, valueStyle);
+        addInfoRow(infoGrid, 0, "TA ID:", applicant.getTaId(), labelStyle, valueStyle);
+        addInfoRow(infoGrid, 1, "Student ID:", applicant.getStudentId(), labelStyle, valueStyle);
+        addInfoRow(infoGrid, 2, "Name:", applicant.getName(), labelStyle, valueStyle);
+        addInfoRow(infoGrid, 3, "Email:", applicant.getEmail(), labelStyle, valueStyle);
+        addInfoRow(infoGrid, 4, "Available Courses:", applicant.getCourses(), labelStyle, valueStyle);
+        addInfoRow(infoGrid, 5, "Skills:", applicant.getSkillTags(), labelStyle, valueStyle);
+        addInfoRow(infoGrid, 6, "Phone:", applicant.getContact(), labelStyle, valueStyle);
 
         infoCard.getChildren().add(infoGrid);
 
-        Button editBtn = new Button("编辑");
+        Button editBtn = new Button("Edit");
         editBtn.setStyle(
                 "-fx-font-size: 14px; " +
                         "-fx-padding: 10px 25px; " +
@@ -72,10 +72,10 @@ public class ProfileDetailView {
         );
         editBtn.setOnAction(e -> {
             stage.getScene().setRoot(createEditView());
-            stage.setTitle("编辑个人详情");
+            stage.setTitle("Profile Details");
         });
 
-        Button backToHomeBtn = new Button("返回TA首页");
+        Button backToHomeBtn = new Button("Back to TA Home");
         backToHomeBtn.setStyle(
                 "-fx-font-size: 14px; " +
                         "-fx-padding: 10px 25px; " +
@@ -102,9 +102,9 @@ public class ProfileDetailView {
         return root;
     }
 
-    // ===================== 编辑模式 =====================
+    // ===================== Edit Mode =====================
     private Parent createEditView() {
-        Label title = new Label("编辑个人详情");
+        Label title = new Label("Profile Details");
         title.setFont(new Font(22));
         title.setStyle("-fx-font-weight: bold; -fx-text-fill: #2c3e50;");
 
@@ -131,34 +131,34 @@ public class ProfileDetailView {
         String fieldStyle = "-fx-padding: 8 12; -fx-font-size: 14px; -fx-background-radius: 5; -fx-border-color: #dcdde1; -fx-border-radius: 5;";
         String errorFieldStyle = "-fx-padding: 8 12; -fx-font-size: 14px; -fx-background-radius: 5; -fx-border-color: #e74c3c; -fx-border-radius: 5; -fx-background-color: #fdf2f2;";
 
-        Label taIdLabel = new Label("TA ID：");
+        Label taIdLabel = new Label("TA ID:");
         taIdLabel.setStyle(labelStyle);
         TextField taIdField = new TextField(safe(applicant.getTaId()));
         taIdField.setEditable(false);
         taIdField.setDisable(true);
         taIdField.setStyle(fieldStyle + "-fx-opacity: 0.8;");
 
-        Label studentIdLabel = new Label("学号：");
+        Label studentIdLabel = new Label("Student ID:");
         studentIdLabel.setStyle(labelStyle);
         TextField studentIdField = new TextField(safe(applicant.getStudentId()));
         studentIdField.setStyle(fieldStyle);
 
-        Label nameLabel = new Label("姓名：");
+        Label nameLabel = new Label("Name:");
         nameLabel.setStyle(labelStyle);
         TextField nameField = new TextField(safe(applicant.getName()));
         nameField.setStyle(fieldStyle);
 
-        Label emailLabel = new Label("邮箱：");
+        Label emailLabel = new Label("Email:");
         emailLabel.setStyle(labelStyle);
         TextField emailField = new TextField(safe(applicant.getEmail()));
         emailField.setStyle(fieldStyle);
 
-        Label coursesLabel = new Label("可授课程：");
+        Label coursesLabel = new Label("Available Courses:");
         coursesLabel.setStyle(labelStyle);
         TextField coursesField = new TextField(safe(applicant.getCourses()));
         coursesField.setStyle(fieldStyle);
 
-        Label skillsLabel = new Label("技能标签：");
+        Label skillsLabel = new Label("Skills:");
         skillsLabel.setStyle(labelStyle);
 
         CheckBox cbJava = new CheckBox("Java");
@@ -183,7 +183,7 @@ public class ProfileDetailView {
 
         VBox skillsBox = new VBox(6, cbJava, cbEnglish, cbTeaching, cbPython, cbOffice);
 
-        Label contactLabel = new Label("联系电话：");
+        Label contactLabel = new Label("Phone:");
         contactLabel.setStyle(labelStyle);
         TextField contactField = new TextField(safe(applicant.getContact()));
         contactField.setStyle(fieldStyle);
@@ -213,7 +213,7 @@ public class ProfileDetailView {
         resultLabel.setWrapText(true);
         resultLabel.setStyle("-fx-font-size: 14px; -fx-padding: 8 0 0 0;");
 
-        Button saveBtn = new Button("保存");
+        Button saveBtn = new Button("Save");
         saveBtn.setStyle(
                 "-fx-font-size: 14px; " +
                         "-fx-padding: 10px 25px; " +
@@ -223,7 +223,7 @@ public class ProfileDetailView {
                         "-fx-background-radius: 5;"
         );
 
-        Button cancelBtn = new Button("取消");
+        Button cancelBtn = new Button("Cancel");
         cancelBtn.setStyle(
                 "-fx-font-size: 14px; " +
                         "-fx-padding: 10px 25px; " +
@@ -233,7 +233,7 @@ public class ProfileDetailView {
                         "-fx-background-radius: 5;"
         );
 
-        Button backToHomeBtn = new Button("返回TA首页");
+        Button backToHomeBtn = new Button("Back to TA Home");
         backToHomeBtn.setStyle(
                 "-fx-font-size: 14px; " +
                         "-fx-padding: 10px 25px; " +
@@ -259,44 +259,44 @@ public class ProfileDetailView {
             String contact = contactField.getText().trim();
 
             if (studentId.isEmpty()) {
-                resultLabel.setText(resultLabel.getText() + "❌ 学号不能为空。\n");
+                resultLabel.setText(resultLabel.getText() + "❌ Student ID cannot be empty.\n");
                 studentIdField.setStyle(errorFieldStyle);
                 isFormValid = false;
             }
 
             if (name.isEmpty()) {
-                resultLabel.setText(resultLabel.getText() + "❌ 姓名不能为空。\n");
+                resultLabel.setText(resultLabel.getText() + "❌ Name cannot be empty.\n");
                 nameField.setStyle(errorFieldStyle);
                 isFormValid = false;
             }
 
             if (email.isEmpty()) {
-                resultLabel.setText(resultLabel.getText() + "❌ 邮箱不能为空。\n");
+                resultLabel.setText(resultLabel.getText() + "❌ Email cannot be empty.\n");
                 emailField.setStyle(errorFieldStyle);
                 isFormValid = false;
             }
 
             if (contact.isEmpty()) {
-                resultLabel.setText(resultLabel.getText() + "❌ 联系电话不能为空。\n");
+                resultLabel.setText(resultLabel.getText() + "❌ Phone cannot be empty.\n");
                 contactField.setStyle(errorFieldStyle);
                 isFormValid = false;
             }
 
             if (!studentId.isEmpty() && !studentId.matches("\\d{10}")) {
-                resultLabel.setText(resultLabel.getText() + "❌ 学号必须是10位数字。\n");
+                resultLabel.setText(resultLabel.getText() + "❌ Student ID must be 10 digits.\n");
                 studentIdField.setStyle(errorFieldStyle);
                 isFormValid = false;
             }
 
             if (!email.isEmpty() && !email.contains("@")) {
-                resultLabel.setText(resultLabel.getText() + "❌ 邮箱格式不正确，必须包含 @ 。\n");
+                resultLabel.setText(resultLabel.getText() + "❌ Invalid email format. Email must contain @.\n");
                 emailField.setStyle(errorFieldStyle);
                 isFormValid = false;
             }
 
             if (!contact.isEmpty()) {
                 if (!contact.matches("^1[3-9]\\d{9}$") && !contact.matches("^\\d{3,4}-\\d{7,8}$")) {
-                    resultLabel.setText(resultLabel.getText() + "❌ 联系电话格式不正确。\n");
+                    resultLabel.setText(resultLabel.getText() + "❌ Invalid phone number format.\n");
                     contactField.setStyle(errorFieldStyle);
                     isFormValid = false;
                 }
@@ -310,7 +310,7 @@ public class ProfileDetailView {
             if (cbOffice.isSelected()) skillTags.append("Office,");
 
             if (skillTags.length() == 0) {
-                resultLabel.setText(resultLabel.getText() + "❌ 请至少选择一个技能标签。\n");
+                resultLabel.setText(resultLabel.getText() + "❌ Please select at least one skill.\n");
                 isFormValid = false;
             }
 
@@ -332,23 +332,23 @@ public class ProfileDetailView {
                 applicantService.updateApplicant(applicant);
 
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("成功");
+                alert.setTitle("Success");
                 alert.setHeaderText(null);
-                alert.setContentText("个人信息更新成功！");
+                alert.setContentText("Profile updated successfully!");
                 alert.showAndWait();
 
                 stage.getScene().setRoot(createDisplayView());
-                stage.setTitle("个人详情 & 简历上传");
+                stage.setTitle("Profile Details");
             } catch (Exception ex) {
                 resultLabel.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 14px; -fx-padding: 8 0 0 0;");
-                resultLabel.setText("❌ 保存失败：" + ex.getMessage());
+                resultLabel.setText("❌ Save failed: " + ex.getMessage());
                 ex.printStackTrace();
             }
         });
 
         cancelBtn.setOnAction(e -> {
             stage.getScene().setRoot(createDisplayView());
-            stage.setTitle("个人详情 & 简历上传");
+            stage.setTitle("Profile Details");
         });
 
         backToHomeBtn.setOnAction(e -> {
@@ -378,12 +378,12 @@ public class ProfileDetailView {
         return scrollPane;
     }
 
-    // ===================== 工具方法 =====================
+    // ===================== Helper Method =====================
     private void addInfoRow(GridPane grid, int row, String labelText, String valueText, String labelStyle, String valueStyle) {
         Label label = new Label(labelText);
         label.setStyle(labelStyle);
 
-        Label value = new Label(valueText == null || valueText.isBlank() ? "未填写" : valueText);
+        Label value = new Label(valueText == null || valueText.isBlank() ? "Not Provided" : valueText);
         value.setStyle(valueStyle);
 
         grid.add(label, 0, row);

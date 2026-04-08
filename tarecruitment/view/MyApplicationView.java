@@ -7,7 +7,9 @@ import com.group4.tarecruitment.service.JobService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -26,15 +28,13 @@ public class MyApplicationView {
     }
 
     public Parent createContent() {
-        // 标题美化
-        Label title = new Label("我的申请记录");
+        Label title = new Label("My Applications");
         title.setFont(new Font(18));
         title.setStyle("-fx-font-weight: bold; -fx-text-fill: #2c3e50;");
 
-        // 按钮统一美化
-        Button refreshBtn = new Button("刷新状态");
-        Button backToListBtn = new Button("返回岗位列表");
-        Button backToHomeBtn = new Button("返回TA首页");
+        Button refreshBtn = new Button("Refresh Status");
+        Button backToListBtn = new Button("Back to Job List");
+        Button backToHomeBtn = new Button("Back to TA Home");
 
         String btnStyle = "-fx-font-size: 14px; -fx-padding: 7 14; -fx-background-radius: 5; -fx-font-weight: bold;";
         refreshBtn.setStyle(btnStyle + "-fx-background-color: #3498db; -fx-text-fill: white;");
@@ -44,7 +44,6 @@ public class MyApplicationView {
         HBox topBar = new HBox(10, refreshBtn, backToListBtn, backToHomeBtn);
         topBar.setAlignment(Pos.CENTER_LEFT);
 
-        // 列表容器美化
         VBox appListBox = new VBox(10);
         appListBox.setPadding(new Insets(15));
         appListBox.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 8;");
@@ -56,6 +55,7 @@ public class MyApplicationView {
         backToListBtn.setOnAction(e -> {
             JobListView jobListView = new JobListView(stage, applicant);
             stage.getScene().setRoot(jobListView.createContent());
+            stage.setTitle("Available TA Positions");
         });
 
         backToHomeBtn.setOnAction(e -> {
@@ -75,7 +75,7 @@ public class MyApplicationView {
         try {
             List<Application> apps = jobService.getMyApplications(applicant.getTaId());
             if (apps.isEmpty()) {
-                Label emptyLabel = new Label("暂无申请记录");
+                Label emptyLabel = new Label("No application records found.");
                 emptyLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #7f8c8d;");
                 appListBox.getChildren().add(emptyLabel);
                 return;
@@ -88,20 +88,19 @@ public class MyApplicationView {
                 appItem.setAlignment(Pos.CENTER_LEFT);
                 appItem.setStyle("-fx-padding: 12; -fx-background-color: white; -fx-background-radius: 6; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 4,0,0,1);");
 
-                Label courseLabel = new Label("课程: " + (job != null ? job.getCourseName() : "未知岗位"));
-                Label timeLabel = new Label("申请时间: " + app.getApplicationTime());
-                Label statusLabel = new Label("状态: " + app.getStatus());
+                Label courseLabel = new Label("Course: " + (job != null ? job.getCourseName() : "Unknown Position"));
+                Label timeLabel = new Label("Application Time: " + app.getApplicationTime());
+                Label statusLabel = new Label("Status: " + app.getStatus());
 
-                // 状态颜色
-                if (app.getStatus().equals("待审核")) {
+                if ("Pending".equalsIgnoreCase(app.getStatus())) {
                     statusLabel.setStyle("-fx-text-fill: #f39c12; -fx-font-weight: bold;");
-                } else if (app.getStatus().equals("已通过")) {
+                } else if ("Approved".equalsIgnoreCase(app.getStatus())) {
                     statusLabel.setStyle("-fx-text-fill: #27ae60; -fx-font-weight: bold;");
-                } else if (app.getStatus().equals("已拒绝")) {
+                } else if ("Rejected".equalsIgnoreCase(app.getStatus())) {
                     statusLabel.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
                 }
 
-                Button detailBtn = new Button("查看详情");
+                Button detailBtn = new Button("View Details");
                 detailBtn.setStyle("-fx-font-size: 13px; -fx-padding: 6 12; -fx-background-color: #3498db; -fx-text-fill: white; -fx-background-radius: 5;");
 
                 detailBtn.setOnAction(e -> showAppDetail(app, job));
@@ -109,23 +108,29 @@ public class MyApplicationView {
                 appListBox.getChildren().add(appItem);
             }
         } catch (Exception e) {
-            appListBox.getChildren().add(new Label("加载失败: " + e.getMessage()));
+            appListBox.getChildren().add(new Label("Load failed: " + e.getMessage()));
             e.printStackTrace();
         }
     }
 
     private void showAppDetail(Application app, Job job) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("申请详情");
+        alert.setTitle("Application Details");
         alert.setHeaderText(null);
+
+        String reviewComment = app.getReviewComment() == null || app.getReviewComment().isEmpty()
+                ? "None"
+                : app.getReviewComment();
+
         String content = String.format(
-                "申请ID: %s\n岗位: %s\n申请时间: %s\n状态: %s\n评审意见: %s",
+                "Application ID: %s\nPosition: %s\nApplication Time: %s\nStatus: %s\nReview Comment: %s",
                 app.getApplicationId(),
-                job != null ? job.getCourseName() : "未知岗位",
+                job != null ? job.getCourseName() : "Unknown Position",
                 app.getApplicationTime(),
                 app.getStatus(),
-                app.getReviewComment().isEmpty() ? "无" : app.getReviewComment()
+                reviewComment
         );
+
         alert.setContentText(content);
         alert.showAndWait();
     }
