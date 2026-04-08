@@ -260,7 +260,7 @@ public class MOViewApplicationsView {
     }
 
     private void downloadCV(String cvPath) {
-        if (cvPath == null || cvPath.isEmpty()) {
+        if (cvPath == null || cvPath.isBlank()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("No CV");
             alert.setContentText("No CV file available for download!");
@@ -269,64 +269,35 @@ public class MOViewApplicationsView {
         }
 
         try {
-            // 修复路径：手动重建正确的路径
-            // 从错误信息看，路径中的反斜杠完全丢失了
-            // 正确的路径应该包含反斜杠
-            String correctPath = "C:\\Users\\25476\\Desktop\\Group4_software_engineering-main\\Ta-Recruitment-System\\data\\resumes\\" + 
-                               cvPath.substring(cvPath.lastIndexOf("_") - 6); // 提取文件名部分
-            
-            // 获取文件对象
-            File cvFile = new File(correctPath);
+            File cvFile = new File(cvPath);
 
-            if (!cvFile.exists()) {
-                // 尝试另一种方式：使用正斜杠
-                String altPath = correctPath.replace("\\", "/");
-                File altCvFile = new File(altPath);
-                
-                if (!altCvFile.exists()) {
-                    // 尝试从当前工作目录构建路径
-                    String currentDir = System.getProperty("user.dir");
-                    String relativePath = currentDir + "\\data\\resumes\\" + 
-                                        cvPath.substring(cvPath.lastIndexOf("_") - 6);
-                    File relativeCvFile = new File(relativePath);
-                    
-                    if (!relativeCvFile.exists()) {
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setTitle("File Not Found");
-                        alert.setContentText("CV file not found:\n" + 
-                                            "Original: " + cvPath + "\n" +
-                                            "Correct path: " + correctPath + "\n" +
-                                            "Alt path: " + altPath + "\n" +
-                                            "Relative path: " + relativePath + "\n" +
-                                            "Current dir: " + currentDir);
-                        alert.showAndWait();
-                        return;
-                    }
-                    cvFile = relativeCvFile;
-                } else {
-                    cvFile = altCvFile;
-                }
+            // 如果保存的是相对路径，则基于当前项目目录解析
+            if (!cvFile.isAbsolute()) {
+                cvFile = new File(System.getProperty("user.dir"), cvPath);
             }
 
-            // 创建文件选择器来保存文件
+            if (!cvFile.exists()) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("File Not Found");
+                alert.setContentText("CV file not found:\n" + cvFile.getAbsolutePath());
+                alert.showAndWait();
+                return;
+            }
+
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Save CV File");
             fileChooser.setInitialFileName(cvFile.getName());
+            fileChooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("All Files (*.*)", "*.*")
+            );
 
-            // 设置文件过滤器（可选）
-            FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter(
-                    "All Files (*.*)", "*.*");
-            fileChooser.getExtensionFilters().add(extFilter);
-
-            // 显示保存对话框
             File saveFile = fileChooser.showSaveDialog(stage);
 
             if (saveFile != null) {
-                // 复制文件到指定位置
                 Files.copy(
                         cvFile.toPath(),
                         saveFile.toPath(),
-                        java.nio.file.StandardCopyOption.REPLACE_EXISTING
+                        StandardCopyOption.REPLACE_EXISTING
                 );
 
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);

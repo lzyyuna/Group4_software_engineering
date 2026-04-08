@@ -35,10 +35,10 @@ public class TAHomeView {
         welcomeLabel.setFont(new Font(14));
         welcomeLabel.setStyle("-fx-text-fill: #7f8c8d;");
 
-        Button profileBtn = new Button("个人详情");
-        Button resumeBtn = new Button("简历上传");
-        Button jobListBtn = new Button("查看可申请岗位");
-        Button backBtn = new Button("返回角色选择");
+        Button profileBtn = new Button("Profile Details");
+        Button resumeBtn = new Button("Upload Resume");
+        Button jobListBtn = new Button("View Available Jobs");
+        Button backBtn = new Button("Back to Role Selection");
 
         profileBtn.setPrefWidth(250);
         resumeBtn.setPrefWidth(250);
