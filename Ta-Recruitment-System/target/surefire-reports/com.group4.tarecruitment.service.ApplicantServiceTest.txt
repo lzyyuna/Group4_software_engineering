@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.group4.tarecruitment.service.ApplicantServiceTest
 -------------------------------------------------------------------------------
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.448 s -- in com.group4.tarecruitment.service.ApplicantServiceTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.566 s -- in com.group4.tarecruitment.service.ApplicantServiceTest
