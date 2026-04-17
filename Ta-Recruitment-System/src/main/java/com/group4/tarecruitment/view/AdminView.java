@@ -2,7 +2,6 @@ package com.group4.tarecruitment.view;
 
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
@@ -30,14 +29,11 @@ public class AdminView {
         manageBtn.setPrefWidth(220);
         backBtn.setPrefWidth(220);
 
-        backBtn.setOnAction(e -> {
-            RoleSelectView roleSelectView = new RoleSelectView(stage);
-            stage.setScene(new Scene(roleSelectView.createContent(), 800, 600));
-        });
+        // 事件绑定由 Controller 处理
 
         VBox root = new VBox(15, title, workloadBtn, manageBtn, backBtn);
         root.setPadding(new Insets(30));
-        root.setStyle("-fx-alignment: center; -fx-background-color: #f5f6fa;");
+        root.setStyle("-fx-alignment: center; -fx-background-color: #f5f6faff;");
 
         return root;
     }

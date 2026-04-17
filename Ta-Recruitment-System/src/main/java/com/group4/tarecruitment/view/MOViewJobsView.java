@@ -8,12 +8,12 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import com.group4.tarecruitment.util.ThemeManager;
 
 import java.util.List;
 
@@ -121,7 +121,7 @@ public class MOViewJobsView {
                     return;
                 }
                 MOEditJobView editView = new MOEditJobView(stage, moName, selected);
-                stage.setScene(new Scene(editView.createContent(), 800, 600));
+                stage.setScene(ThemeManager.createScene(editView.createContent(), 1000, 700));
             } else {
                 statusLabel.setText("Please select a position first!");
             }
@@ -168,7 +168,7 @@ public class MOViewJobsView {
 
         backBtn.setOnAction(e -> {
             TeacherView teacherView = new TeacherView(stage, moName);
-            stage.setScene(new Scene(teacherView.createContent(), 800, 600));
+            stage.setScene(ThemeManager.createScene(teacherView.createContent(), 1000, 700));
         });
 
         VBox root = new VBox(15, title, jobTable, buttonBox, statusLabel);

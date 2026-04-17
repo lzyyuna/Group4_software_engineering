@@ -5,13 +5,13 @@ import com.group4.tarecruitment.service.MOService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import com.group4.tarecruitment.util.ThemeManager;
 
 public class MOEditJobView {
 
@@ -145,7 +145,7 @@ public class MOEditJobView {
 
                     // 返回职位列表
                     MOViewJobsView viewJobsView = new MOViewJobsView(stage, moName);
-                    stage.setScene(new Scene(viewJobsView.createContent(), 800, 600));
+                    stage.setScene(ThemeManager.createScene(viewJobsView.createContent(), 1000, 700));
                 } else {
                     statusLabel.setText("Error: Failed to update position. Please check if the position is still in 'Recruiting' status.");
                 }
@@ -157,7 +157,7 @@ public class MOEditJobView {
 
         cancelBtn.setOnAction(e -> {
             MOViewJobsView viewJobsView = new MOViewJobsView(stage, moName);
-            stage.setScene(new Scene(viewJobsView.createContent(), 800, 600));
+            stage.setScene(ThemeManager.createScene(viewJobsView.createContent(), 1000, 700));
         });
 
         VBox root = new VBox(15, title, jobIdLabel, form, buttonBox, statusLabel);

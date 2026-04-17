@@ -10,6 +10,8 @@ public class Admin {
     private double weeklyWorkload;
     private double totalWorkload;
     private String hireDate;
+    private double excessAmount;
+    private String suggestion;
 
     public Admin() {}
 
@@ -25,6 +27,8 @@ public class Admin {
         this.weeklyWorkload = weeklyWorkload;
         this.totalWorkload = totalWorkload;
         this.hireDate = hireDate;
+        this.excessAmount = 0.0;
+        this.suggestion = "";
     }
 
     public String getTaId() { return taId; }
@@ -54,6 +58,12 @@ public class Admin {
     public String getHireDate() { return hireDate; }
     public void setHireDate(String hireDate) { this.hireDate = hireDate; }
 
+    public double getExcessAmount() { return excessAmount; }
+    public void setExcessAmount(double excessAmount) { this.excessAmount = excessAmount; }
+
+    public String getSuggestion() { return suggestion; }
+    public void setSuggestion(String suggestion) { this.suggestion = suggestion; }
+
     @Override
     public String toString() {
         return "TA ID: " + taId +
@@ -63,6 +73,8 @@ public class Admin {
                 " | Department: " + department +
                 " | Weekly Workload: " + weeklyWorkload +
                 " | Total Workload: " + totalWorkload +
-                " | Hire Date: " + hireDate;
+                " | Hire Date: " + hireDate +
+                " | Excess: " + excessAmount +
+                " | Suggestion: " + suggestion;
     }
 }

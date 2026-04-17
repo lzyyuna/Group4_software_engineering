@@ -56,7 +56,10 @@ public class UserRepository {
             return false;
         }
 
-        // �����Ұ����û���ȫ��Ψһ������
+        if (!password.matches("^[A-Za-z0-9]{6,}$")) {
+            return false;
+        }
+
         if (existsByUsername(username)) {
             return false;
         }

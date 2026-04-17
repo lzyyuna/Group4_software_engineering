@@ -15,13 +15,14 @@ public class Job {
     private String skillRequirements;
     private String jobContent;
     private String deadline;
+    private String department; // Added for AD-003
 
     // 无参构造 + 全参构造 + get/set 方法（和 Applicant 格式保持一致）
     public Job() {}
 
     public Job(String jobId, String courseName, String positionType, int weeklyWorkload,
                String moName, String moEmail, String status, String releaseTime, String skillRequirements,
-               String jobContent, String deadline) {
+               String jobContent, String deadline, String department) {
         this.jobId = jobId;
         this.courseName = courseName;
         this.positionType = positionType;
@@ -33,6 +34,14 @@ public class Job {
         this.skillRequirements = skillRequirements;
         this.jobContent = jobContent;
         this.deadline = deadline;
+        this.department = department;
+    }
+
+    // Compatibility constructor
+    public Job(String jobId, String courseName, String positionType, int weeklyWorkload,
+               String moName, String moEmail, String status, String releaseTime, String skillRequirements,
+               String jobContent, String deadline) {
+        this(jobId, courseName, positionType, weeklyWorkload, moName, moEmail, status, releaseTime, skillRequirements, jobContent, deadline, "General/Others");
     }
 
     // 生成所有 getter 和 setter
@@ -58,4 +67,6 @@ public class Job {
     public void setJobContent(String jobContent) { this.jobContent = jobContent; }
     public String getDeadline() { return deadline; }
     public void setDeadline(String deadline) { this.deadline = deadline; }
+    public String getDepartment() { return department; }
+    public void setDepartment(String department) { this.department = department; }
 }

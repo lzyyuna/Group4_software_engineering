@@ -10,7 +10,6 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.layout.HBox;
@@ -18,6 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import com.group4.tarecruitment.util.ThemeManager;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -43,12 +43,11 @@ public class MOViewApplicationsView {
 
     public Parent createContent() {
         Label title = new Label("Review TA Applications");
-        title.setFont(new Font(20));
-        title.setStyle("-fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+        title.getStyleClass().add("mo-applications-title");
 
         // 职位选择
-        HBox filterBox = new HBox(10);
-        filterBox.setAlignment(Pos.CENTER);
+        HBox filterBox = new HBox(15);
+        filterBox.getStyleClass().add("filter-box");
 
         Label jobLabel = new Label("Select Position:");
         jobComboBox = new ComboBox<>();
@@ -61,7 +60,7 @@ public class MOViewApplicationsView {
         statusFilter.setValue("All");
 
         Button loadBtn = new Button("Load Applications");
-        loadBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white;");
+        loadBtn.getStyleClass().add("refresh-btn");
 
         filterBox.getChildren().addAll(jobLabel, jobComboBox, statusLabel, statusFilter, loadBtn);
 
@@ -70,7 +69,7 @@ public class MOViewApplicationsView {
 
         // 创建申请表格
         appTable = new TableView<>();
-        appTable.setPrefHeight(350);
+        appTable.getStyleClass().add("applications-table");
 
         TableColumn<Application, String> appIdCol = new TableColumn<>("Application ID");
         appIdCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getApplicationId()));
@@ -113,18 +112,18 @@ public class MOViewApplicationsView {
         Button refreshBtn = new Button("Refresh");
         Button backBtn = new Button("Back");
 
-        viewProfileBtn.setStyle("-fx-background-color: #9b59b6; -fx-text-fill: white;");
-        approveBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white;");
-        rejectBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
-        refreshBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white;");
-        backBtn.setStyle("-fx-background-color: #95a5a6; -fx-text-fill: white;");
+        viewProfileBtn.getStyleClass().add("view-profile-btn");
+        approveBtn.getStyleClass().add("approve-btn");
+        rejectBtn.getStyleClass().add("reject-btn");
+        refreshBtn.getStyleClass().add("refresh-btn");
+        backBtn.getStyleClass().add("back-btn");
 
-        HBox buttonBox = new HBox(10, viewProfileBtn, approveBtn, rejectBtn, refreshBtn, backBtn);
-        buttonBox.setAlignment(Pos.CENTER);
+        HBox buttonBox = new HBox(15, viewProfileBtn, approveBtn, rejectBtn, refreshBtn, backBtn);
+        buttonBox.getStyleClass().add("button-box");
 
         // 状态标签
         Label statusMsgLabel = new Label();
-        statusMsgLabel.setStyle("-fx-text-fill: #e74c3c;");
+        statusMsgLabel.getStyleClass().add("status-message");
 
         // 按钮事件
         loadBtn.setOnAction(e -> loadApplications());
@@ -164,13 +163,11 @@ public class MOViewApplicationsView {
 
         backBtn.setOnAction(e -> {
             TeacherView teacherView = new TeacherView(stage, moName);
-            stage.setScene(new Scene(teacherView.createContent(), 800, 600));
+            stage.setScene(ThemeManager.createScene(teacherView.createContent(), 1000, 700));
         });
 
         VBox root = new VBox(15, title, filterBox, appTable, buttonBox, statusMsgLabel);
-        root.setPadding(new Insets(30));
-        root.setAlignment(Pos.CENTER);
-        root.setStyle("-fx-background-color: #f5f6fa;");
+        root.getStyleClass().add("mo-applications-page");
 
         return root;
     }
@@ -219,18 +216,32 @@ public class MOViewApplicationsView {
                 dialog.setHeaderText("TA ID: " + taId);
 
                 // 创建内容区域
-                VBox content = new VBox(10);
-                content.setPadding(new Insets(20));
+                VBox content = new VBox();
+                content.getStyleClass().add("profile-content");
 
-                Label nameLabel = new Label("Name: " + applicant.getName());
-                Label emailLabel = new Label("Email: " + applicant.getEmail());
-                Label phoneLabel = new Label("Phone: " + (applicant.getPhone() != null ? applicant.getPhone() : "N/A"));
-                Label skillsLabel = new Label("Skills: " + (applicant.getSkills() != null ? applicant.getSkills() : "N/A"));
+                // 创建个人信息卡片
+                VBox profileSection = new VBox(16);
+                profileSection.getStyleClass().add("profile-section");
 
+                // 创建信息行，使用HBox布局使标签更加整齐
+                createStyledInfoRow(profileSection, "Name:", applicant.getName() != null ? applicant.getName() : "N/A");
+                createStyledInfoRow(profileSection, "Email:", applicant.getEmail() != null ? applicant.getEmail() : "N/A");
+                createStyledInfoRow(profileSection, "Phone:", applicant.getPhone() != null ? applicant.getPhone() : "N/A");
+                createStyledInfoRow(profileSection, "Skills:", applicant.getSkills() != null ? applicant.getSkills() : "N/A");
+
+                // 创建简历信息卡片
+                VBox cvSection = new VBox(16);
+                cvSection.getStyleClass().add("cv-section");
+                
                 // 简历信息和下载按钮
-                HBox cvBox = new HBox(10);
-                Label cvLabel = new Label("CV Path: " + (applicant.getCvPath() != null ? applicant.getCvPath() : "N/A"));
+                HBox cvBox = new HBox(12);
+                cvBox.getStyleClass().add("cv-box");
+                
+                Label cvPathLabel = new Label(applicant.getCvPath() != null ? applicant.getCvPath() : "N/A");
+                cvPathLabel.getStyleClass().add("cv-path-label");
+                
                 Button downloadBtn = new Button("Download CV");
+                downloadBtn.getStyleClass().add("download-btn");
 
                 // 只有当简历路径存在时才启用下载按钮
                 if (applicant.getCvPath() == null || applicant.getCvPath().isEmpty()) {
@@ -238,15 +249,28 @@ public class MOViewApplicationsView {
                 }
 
                 downloadBtn.setOnAction(e -> downloadCV(applicant.getCvPath()));
-                cvBox.getChildren().addAll(cvLabel, downloadBtn);
+                cvBox.getChildren().addAll(cvPathLabel, downloadBtn);
+                cvSection.getChildren().add(cvBox);
 
-                content.getChildren().addAll(nameLabel, emailLabel, phoneLabel, skillsLabel, cvBox);
+                // 添加所有部分到内容区域
+                content.getChildren().addAll(profileSection, cvSection);
 
                 // 添加关闭按钮
                 ButtonType closeButtonType = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
                 dialog.getDialogPane().getButtonTypes().add(closeButtonType);
 
+                // 为对话框添加样式
+                dialog.getDialogPane().getStyleClass().add("ta-profile-dialog");
                 dialog.getDialogPane().setContent(content);
+                
+                // 确保对话框加载CSS样式
+                String css = getClass().getResource("/styles/app-theme.css").toExternalForm();
+                dialog.getDialogPane().getStylesheets().add(css);
+                
+                // 设置对话框大小
+                dialog.getDialogPane().setPrefWidth(550);
+                dialog.getDialogPane().setPrefHeight(400);
+                
                 dialog.showAndWait();
             } else {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -258,9 +282,23 @@ public class MOViewApplicationsView {
             e.printStackTrace();
         }
     }
+    
+    private void createStyledInfoRow(VBox parent, String labelText, String value) {
+        HBox row = new HBox(16);
+        row.getStyleClass().add("profile-info-row");
+        
+        Label label = new Label(labelText);
+        label.getStyleClass().add("profile-info-label");
+        
+        Label valueLabel = new Label(value);
+        valueLabel.getStyleClass().add("profile-info-value");
+        
+        row.getChildren().addAll(label, valueLabel);
+        parent.getChildren().add(row);
+    }
 
     private void downloadCV(String cvPath) {
-        if (cvPath == null || cvPath.isEmpty()) {
+        if (cvPath == null || cvPath.isBlank()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("No CV");
             alert.setContentText("No CV file available for download!");
@@ -269,64 +307,73 @@ public class MOViewApplicationsView {
         }
 
         try {
-            // 修复路径：手动重建正确的路径
-            // 从错误信息看，路径中的反斜杠完全丢失了
-            // 正确的路径应该包含反斜杠
-            String correctPath = "C:\\Users\\25476\\Desktop\\Group4_software_engineering-main\\Ta-Recruitment-System\\data\\resumes\\" + 
-                               cvPath.substring(cvPath.lastIndexOf("_") - 6); // 提取文件名部分
+            // 提取文件名
+            String fileName = cvPath;
+            if (cvPath.contains("\\")) {
+                fileName = cvPath.substring(cvPath.lastIndexOf("\\") + 1);
+            } else if (cvPath.contains("/")) {
+                fileName = cvPath.substring(cvPath.lastIndexOf("/") + 1);
+            }
             
-            // 获取文件对象
-            File cvFile = new File(correctPath);
+            // 尝试多个可能的相对路径
+            String[] possiblePaths = {
+                "data/resumes/" + fileName,
+                "../data/resumes/" + fileName,
+                "TA-Recruitment-System/data/resumes/" + fileName,
+                "../TA-Recruitment-System/data/resumes/" + fileName,
+                "../../data/resumes/" + fileName,
+                "../../TA-Recruitment-System/data/resumes/" + fileName,
+                "resumes/" + fileName,
+                "../resumes/" + fileName
+            };
 
-            if (!cvFile.exists()) {
-                // 尝试另一种方式：使用正斜杠
-                String altPath = correctPath.replace("\\", "/");
-                File altCvFile = new File(altPath);
-                
-                if (!altCvFile.exists()) {
-                    // 尝试从当前工作目录构建路径
-                    String currentDir = System.getProperty("user.dir");
-                    String relativePath = currentDir + "\\data\\resumes\\" + 
-                                        cvPath.substring(cvPath.lastIndexOf("_") - 6);
-                    File relativeCvFile = new File(relativePath);
-                    
-                    if (!relativeCvFile.exists()) {
-                        Alert alert = new Alert(Alert.AlertType.ERROR);
-                        alert.setTitle("File Not Found");
-                        alert.setContentText("CV file not found:\n" + 
-                                            "Original: " + cvPath + "\n" +
-                                            "Correct path: " + correctPath + "\n" +
-                                            "Alt path: " + altPath + "\n" +
-                                            "Relative path: " + relativePath + "\n" +
-                                            "Current dir: " + currentDir);
-                        alert.showAndWait();
-                        return;
-                    }
-                    cvFile = relativeCvFile;
-                } else {
-                    cvFile = altCvFile;
+            File cvFile = null;
+            String foundPath = "";
+
+            for (String path : possiblePaths) {
+                File tempFile = new File(path);
+                if (tempFile.exists()) {
+                    cvFile = tempFile;
+                    foundPath = tempFile.getAbsolutePath();
+                    break;
                 }
             }
 
-            // 创建文件选择器来保存文件
+            if (cvFile == null || !cvFile.exists()) {
+                // 尝试从类路径加载
+                try {
+                    java.net.URL resourceUrl = getClass().getResource("/resumes/" + fileName);
+                    if (resourceUrl != null) {
+                        cvFile = new File(resourceUrl.toURI());
+                        foundPath = cvFile.getAbsolutePath();
+                    }
+                } catch (Exception e) {
+                    // 类路径加载失败，继续处理
+                }
+            }
+
+            if (cvFile == null || !cvFile.exists()) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("File Not Found");
+                alert.setContentText("CV file not found. Please ensure the file exists in the data/resumes directory.");
+                alert.showAndWait();
+                return;
+            }
+
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Save CV File");
             fileChooser.setInitialFileName(cvFile.getName());
+            fileChooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("All Files (*.*)", "*.*")
+            );
 
-            // 设置文件过滤器（可选）
-            FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter(
-                    "All Files (*.*)", "*.*");
-            fileChooser.getExtensionFilters().add(extFilter);
-
-            // 显示保存对话框
             File saveFile = fileChooser.showSaveDialog(stage);
 
             if (saveFile != null) {
-                // 复制文件到指定位置
                 Files.copy(
                         cvFile.toPath(),
                         saveFile.toPath(),
-                        java.nio.file.StandardCopyOption.REPLACE_EXISTING
+                        StandardCopyOption.REPLACE_EXISTING
                 );
 
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);

@@ -11,11 +11,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JobRepository {
-    private static final String FILE_PATH = "data/jobs.csv";
+    private  final String filePath;
+    public JobRepository() {
+        this.filePath = "data/jobs.csv";
+    }
 
+    // 测试用：传入自定义路径（对应 @TempDir）
+    public JobRepository(String filePath) {
+        this.filePath = filePath;
+    }
+
+    // 测试用：接受 Path 类型（更方便配合 @TempDir）
+    public JobRepository(java.nio.file.Path path) {
+        this.filePath = path.toString();
+    }
     public List<Job> loadAll() throws Exception {
         List<Job> jobs = new ArrayList<>();
-        File file = new File(FILE_PATH);
+        File file = new File(filePath);
         if (!file.exists()) return jobs;
 
         try (CSVReader reader = new CSVReader(new FileReader(file))) {
@@ -24,9 +36,10 @@ public class JobRepository {
             while ((line = reader.readNext()) != null) {
                 if (firstLine) { firstLine = false; continue; }
                 if (line.length < 11) continue;
+                String dept = line.length >= 12 ? line[11] : "General/Others";
                 Job job = new Job(
                         line[0], line[1], line[2], Integer.parseInt(line[3]),
-                        line[4], line[5], line[6], line[7], line[8], line[9], line[10]
+                        line[4], line[5], line[6], line[7], line[8], line[9], line[10], dept
                 );
                 jobs.add(job);
             }
@@ -37,18 +50,18 @@ public class JobRepository {
     public void saveAll(List<Job> jobs) throws Exception {
         File dir = new File("data");
         if (!dir.exists()) dir.mkdir();
-        try (CSVWriter writer = new CSVWriter(new FileWriter(FILE_PATH))) {
+        try (CSVWriter writer = new CSVWriter(new FileWriter(filePath))) {
             writer.writeNext(new String[]{
                     "jobId", "courseName", "positionType", "weeklyWorkload",
                     "moName", "moEmail", "status", "releaseTime", "skillRequirements",
-                    "jobContent", "deadline"
+                    "jobContent", "deadline", "department"
             });
             for (Job j : jobs) {
                 writer.writeNext(new String[]{
                         j.getJobId(), j.getCourseName(), j.getPositionType(),
                         String.valueOf(j.getWeeklyWorkload()), j.getMoName(),
                         j.getMoEmail(), j.getStatus(), j.getReleaseTime(), j.getSkillRequirements(),
-                        j.getJobContent(), j.getDeadline()
+                        j.getJobContent(), j.getDeadline(), j.getDepartment()
                 });
             }
         }

@@ -5,6 +5,7 @@ import com.group4.tarecruitment.model.Job;
 import com.group4.tarecruitment.repository.ApplicationRepository;
 import com.group4.tarecruitment.repository.JobRepository;
 
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
@@ -14,18 +15,29 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class MOService {
-    private final JobRepository jobRepo = new JobRepository();
-    private final ApplicationRepository appRepo = new ApplicationRepository();
+    private final JobRepository jobRepo;
+    private final ApplicationRepository appRepo;
+
+    // 生产环境使用默认路径
+    public MOService() {
+        this.jobRepo = new JobRepository();
+        this.appRepo = new ApplicationRepository();
+    }
+
+    // 测试专用构造器，接收自定义路径
+    public MOService(Path jobsPath, Path appsPath) {
+        this.jobRepo = new JobRepository(jobsPath);
+        this.appRepo = new ApplicationRepository(appsPath);
+    }
 
     // MO-001: 发布TA招聘职位
     public String postJob(String courseName, String positionType, int weeklyWorkload,
                           String moName, String moEmail, String skillRequirements,
                           String jobContent, String deadline) throws Exception {
-        // 验证必填字段
         if (courseName == null || courseName.trim().isEmpty() ||
             positionType == null || positionType.trim().isEmpty() ||
             weeklyWorkload <= 0) {
-            return null; // 验证失败
+            return null;
         }
 
         String jobId = "JOB-" + UUID.randomUUID().toString().substring(0, 8);
@@ -61,22 +73,20 @@ public class MOService {
                 .findFirst();
 
         if (jobOpt.isEmpty()) {
-            return false; // 职位不存在或不属于该MO
+            return false;
         }
 
         Job job = jobOpt.get();
         if (!"Recruiting".equals(job.getStatus())) {
-            return false; // 只有Recruiting状态的职位可以编辑
+            return false;
         }
 
-        // 验证必填字段
         if (courseName == null || courseName.trim().isEmpty() ||
             positionType == null || positionType.trim().isEmpty() ||
             weeklyWorkload <= 0) {
             return false;
         }
 
-        // 更新字段（jobId不变）
         job.setCourseName(courseName);
         job.setPositionType(positionType);
         job.setWeeklyWorkload(weeklyWorkload);
@@ -101,7 +111,7 @@ public class MOService {
 
         Job job = jobOpt.get();
         if (!"Recruiting".equals(job.getStatus())) {
-            return false; // 只有Recruiting状态的职位可以关闭
+            return false;
         }
 
         job.setStatus("Closed");
@@ -111,13 +121,12 @@ public class MOService {
 
     // MO-005: 查看职位的申请记录
     public List<Application> getJobApplications(String jobId, String moName) throws Exception {
-        // 验证该职位是否属于该MO
         List<Job> jobs = jobRepo.loadAll();
         boolean isMyJob = jobs.stream()
                 .anyMatch(j -> j.getJobId().equals(jobId) && j.getMoName().equals(moName));
 
         if (!isMyJob) {
-            return List.of(); // 返回空列表
+            return List.of();
         }
 
         return appRepo.loadAll().stream()
@@ -129,7 +138,6 @@ public class MOService {
     // MO-006: 审核申请（批准/拒绝）
     public boolean reviewApplication(String applicationId, String moName,
                                      String reviewResult, String reviewComment) throws Exception {
-        // 验证评论长度
         if (reviewComment != null && reviewComment.length() > 50) {
             return false;
         }
@@ -145,7 +153,6 @@ public class MOService {
 
         Application app = appOpt.get();
 
-        // 验证该申请对应的职位是否属于该MO
         List<Job> jobs = jobRepo.loadAll();
         boolean isMyJob = jobs.stream()
                 .anyMatch(j -> j.getJobId().equals(app.getJobId()) && j.getMoName().equals(moName));
@@ -154,12 +161,11 @@ public class MOService {
             return false;
         }
 
-        // 只有Pending状态的申请可以审核
         if (!"Pending".equals(app.getStatus())) {
             return false;
         }
 
-        app.setStatus(reviewResult); // "Approved" 或 "Rejected"
+        app.setStatus(reviewResult);
         app.setReviewComment(reviewComment);
 
         appRepo.saveAll(apps);

@@ -4,225 +4,221 @@ import com.group4.tarecruitment.model.Application;
 import com.group4.tarecruitment.model.Job;
 import com.group4.tarecruitment.repository.ApplicationRepository;
 import com.group4.tarecruitment.repository.JobRepository;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Integration tests for MOService.
+ *
+ * Œ™ ≤√¥”√ºØ≥…≤‚ ‘∂¯≤ª « Mock£∫
+ *   reviewApplication() µƒ»®œﬁ–£—È“¿¿µ"∂¡ Job Œƒº˛»∑»œ moName"£¨
+ *   ◊¥Ã¨±‰∏¸“¿¿µ"∂¡≥ˆ Application °˙ –ﬁ∏ƒ °˙ –¥ªÿŒƒº˛"µƒÕÍ’˚¡˜≥Ã°£
+ *   Mock µÙ∫Û÷ªƒ‹—È÷§µ˜”√¡¥£¨Œﬁ∑®—È÷§ ˝æ› «∑Ò’Êµƒ±ª’˝»∑≥÷æ√ªØ°£
+ *
+ * ”≈ªØµ„£∫
+ *   1. ”√ @TempDir ÃÊ¥˙ ÷∂Ø…æŒƒº˛£¨√ø∏ˆ≤‚ ‘ÕÍ»´∏Ù¿Î
+ *   2. ”√ @BeforeEach Õ≥“ª≥ı ºªØ“¿¿µ
+ *   3. Ã·»° seedJob / seedApp / findById ∏®÷˙∑Ω∑®£¨œ˚≥˝÷ÿ∏¥
+ *   4. √ø∏ˆ≤‚ ‘µƒ Arrange ÷ª◊º±∏µ±«∞≤‚ ‘–Ë“™µƒ◊Ó…Ÿ ˝æ›
+ */
+@DisplayName("MOService Integration Tests")
 public class MOServiceTest {
 
-    private static final Path JOBS_PATH = Path.of("data", "jobs.csv");
-    private static final Path APPS_PATH = Path.of("data", "applications.csv");
+    @TempDir
+    Path tempDir;
 
-    private void cleanJobsFiles() {
-        try {
-            Files.deleteIfExists(JOBS_PATH);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to cleanup jobs file", e);
-        }
+    private MOService moService;
+    private JobRepository jobRepo;
+    private ApplicationRepository appRepo;
+
+    @BeforeEach
+    void setUp() {
+        Path jobsPath = tempDir.resolve("jobs.csv");
+        Path appsPath = tempDir.resolve("applications.csv");
+
+        jobRepo   = new JobRepository(jobsPath);
+        appRepo   = new ApplicationRepository(appsPath);
+        moService = new MOService(jobsPath, appsPath);
     }
 
-    private void cleanApplicationFiles() {
-        try {
-            Files.deleteIfExists(APPS_PATH);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to cleanup applications file", e);
-        }
+    // ©§©§ ∏®÷˙∑Ω∑® ©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§©§
+
+    /** –¥»Îµ•∏ˆ Job µΩŒƒº˛ */
+    private void seedJob(String jobId, String course, String moName) throws Exception {
+        jobRepo.saveAll(List.of(new Job(
+                jobId, course, "Module TA", 10, moName, moName + "@bupt.edu",
+                "Recruiting", "2026-03-01 10:00:00", "skill", "help", "2026-9"
+        )));
     }
 
-    private Application findById(List<Application> all, String id) {
-        for (Application a : all) {
-            if (id.equals(a.getApplicationId())) return a;
-        }
-        return null;
+    /** –¥»Îµ•∏ˆ Application µΩŒƒº˛ */
+    private void seedApp(String appId, String taId, String jobId,
+                         String status, String comment) throws Exception {
+        appRepo.saveAll(List.of(
+                new Application(appId, taId, jobId, "2026-03-02 12:00:00", status, comment)
+        ));
     }
+
+    /** ¥”Œƒº˛÷–∞¥ ID ≤È’“ Application */
+    private Application findById(String appId) throws Exception {
+        return appRepo.loadAll().stream()
+                .filter(a -> appId.equals(a.getApplicationId()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    // =========================================================================
+    // ’˝≥£≥°æ∞
+    // =========================================================================
 
     @Test
-    void shouldReviewApplication_approved_whenPendingAndJobBelongsToMo() throws Exception {
-        cleanJobsFiles();
-        cleanApplicationFiles();
+    @DisplayName("Review approved: status becomes Approved and comment is saved")
+    void reviewApplication_approved_updatesStatusAndComment() throws Exception {
+        seedJob("JOB-1", "math", "mo1");
+        seedApp("APP-1", "TA-1", "JOB-1", "Pending", "");
 
-        String moName = "mo1";
-        String jobId = "JOB-1";
-        String appId = "APP-1";
+        boolean result = moService.reviewApplication("APP-1", "mo1", "Approved", "good");
 
-        JobRepository jobRepo = new JobRepository();
-        jobRepo.saveAll(List.of(
-                new Job(jobId, "math", "Module TA", 10, moName, "mo@bupt.edu",
-                        "Recruiting", "2026-03-01 10:00:00", "math grade>90",
-                        "help student", "2026-9")
-        ));
-
-        ApplicationRepository appRepo = new ApplicationRepository();
-        appRepo.saveAll(List.of(
-                new Application(appId, "TA-1", jobId, "2026-03-02 12:00:00", "Pending", "")
-        ));
-
-        MOService service = new MOService();
-        boolean ok = service.reviewApplication(appId, moName, "Approved", "good");
-        assertTrue(ok);
-
-        List<Application> after = appRepo.loadAll();
-        Application updated = findById(after, appId);
+        assertTrue(result);
+        Application updated = findById("APP-1");
         assertNotNull(updated);
         assertEquals("Approved", updated.getStatus());
-        assertEquals("good", updated.getReviewComment());
+        assertEquals("good",     updated.getReviewComment());
     }
 
     @Test
-    void shouldReviewApplication_rejected_whenPendingAndJobBelongsToMo() throws Exception {
-        cleanJobsFiles();
-        cleanApplicationFiles();
+    @DisplayName("Review rejected: status becomes Rejected and comment is saved")
+    void reviewApplication_rejected_updatesStatusAndComment() throws Exception {
+        seedJob("JOB-2", "java", "mo1");
+        seedApp("APP-2", "TA-2", "JOB-2", "Pending", "");
 
-        String moName = "mo1";
-        String jobId = "JOB-2";
-        String appId = "APP-2";
+        boolean result = moService.reviewApplication("APP-2", "mo1", "Rejected", "not fit");
 
-        new JobRepository().saveAll(List.of(
-                new Job(jobId, "java", "Module TA", 10, moName, "mo@bupt.edu",
-                        "Recruiting", "2026-03-03 10:00:00", "java grade>90",
-                        "help teacher", "2026-9")
-        ));
-
-        new ApplicationRepository().saveAll(List.of(
-                new Application(appId, "TA-2", jobId, "2026-03-04 12:00:00", "Pending", "")
-        ));
-
-        MOService service = new MOService();
-        boolean ok = service.reviewApplication(appId, moName, "Rejected", "not fit");
-        assertTrue(ok);
-
-        List<Application> after = new ApplicationRepository().loadAll();
-        Application updated = findById(after, appId);
+        assertTrue(result);
+        Application updated = findById("APP-2");
         assertNotNull(updated);
         assertEquals("Rejected", updated.getStatus());
-        assertEquals("not fit", updated.getReviewComment());
+        assertEquals("not fit",  updated.getReviewComment());
+    }
+
+    // =========================================================================
+    //  ‰»Î–£—È
+    // =========================================================================
+
+    @Test
+    @DisplayName("Review fails: comment longer than 50 characters is rejected")
+    void reviewApplication_commentTooLong_returnsFalse() throws Exception {
+        seedJob("JOB-3", "math", "mo1");
+        seedApp("APP-3", "TA-3", "JOB-3", "Pending", "");
+
+        boolean result = moService.reviewApplication("APP-3", "mo1", "Approved", "a".repeat(51));
+
+        assertFalse(result);
     }
 
     @Test
-    void shouldFail_whenReviewCommentTooLong_moreThan50() throws Exception {
-        cleanJobsFiles();
-        cleanApplicationFiles();
+    @DisplayName("Review fails (too long comment): original status and comment unchanged")
+    void reviewApplication_commentTooLong_dataUnchanged() throws Exception {
+        seedJob("JOB-3", "math", "mo1");
+        seedApp("APP-3", "TA-3", "JOB-3", "Pending", "");
 
-        String moName = "mo1";
-        String jobId = "JOB-3";
-        String appId = "APP-3";
+        moService.reviewApplication("APP-3", "mo1", "Approved", "a".repeat(51));
 
-        new JobRepository().saveAll(List.of(
-                new Job(jobId, "math", "Module TA", 10, moName, "mo@bupt.edu",
-                        "Recruiting", "2026-03-05 10:00:00", "math grade>90",
-                        "help student", "2026-9")
-        ));
-
-        new ApplicationRepository().saveAll(List.of(
-                new Application(appId, "TA-3", jobId, "2026-03-06 12:00:00", "Pending", "")
-        ));
-
-        String tooLongComment = "a".repeat(51);
-
-        MOService service = new MOService();
-        boolean ok = service.reviewApplication(appId, moName, "Approved", tooLongComment);
-        assertFalse(ok);
-
-        List<Application> after = new ApplicationRepository().loadAll();
-        Application updated = findById(after, appId);
+        Application updated = findById("APP-3");
         assertNotNull(updated);
-        // ‰∏çÂ∫î‰øÆÊîπ status/reviewComment
         assertEquals("Pending", updated.getStatus());
-        assertEquals("", updated.getReviewComment());
+        assertEquals("",        updated.getReviewComment());
+    }
+
+    // =========================================================================
+    // ±ﬂΩÁ«Èøˆ
+    // =========================================================================
+
+    @Test
+    @DisplayName("Review fails: application ID not found returns false")
+    void reviewApplication_appNotFound_returnsFalse() throws Exception {
+        seedJob("JOB-4", "math", "mo1");
+        seedApp("APP-OTHER", "TA-4", "JOB-4", "Pending", "");
+
+        boolean result = moService.reviewApplication("APP-MISSING", "mo1", "Approved", "good");
+
+        assertFalse(result);
     }
 
     @Test
-    void shouldFail_whenApplicationIdNotFound() throws Exception {
-        cleanJobsFiles();
-        cleanApplicationFiles();
+    @DisplayName("Review fails (app not found): existing application is unchanged")
+    void reviewApplication_appNotFound_existingDataUnchanged() throws Exception {
+        seedJob("JOB-4", "math", "mo1");
+        seedApp("APP-OTHER", "TA-4", "JOB-4", "Pending", "");
 
-        String moName = "mo1";
+        moService.reviewApplication("APP-MISSING", "mo1", "Approved", "good");
 
-        // ÂáÜÂ§á‰∏Ä‰∏™Â≤ó‰ΩçÔºå‰ΩÜ applications ÈáåÊ≤°ÊúâËØ• appId
-        new JobRepository().saveAll(List.of(
-                new Job("JOB-4", "math", "Module TA", 10, moName, "mo@bupt.edu",
-                        "Recruiting", "2026-03-07 10:00:00", "math grade>90",
-                        "help student", "2026-9")
-        ));
-        new ApplicationRepository().saveAll(List.of(
-                new Application("APP-OTHER", "TA-4", "JOB-4", "2026-03-08 12:00:00", "Pending", "")
-        ));
-
-        MOService service = new MOService();
-        boolean ok = service.reviewApplication("APP-MISSING", moName, "Approved", "good");
-        assertFalse(ok);
-
-        // ÂéüÊúâÁî≥ËØ∑‰ªç‰øùÊåÅ‰∏çÂèò
-        List<Application> after = new ApplicationRepository().loadAll();
-        Application existing = findById(after, "APP-OTHER");
+        Application existing = findById("APP-OTHER");
         assertNotNull(existing);
         assertEquals("Pending", existing.getStatus());
-        assertEquals("", existing.getReviewComment());
+        assertEquals("",        existing.getReviewComment());
+    }
+
+    // =========================================================================
+    // »®œﬁøÿ÷∆
+    // =========================================================================
+
+    @Test
+    @DisplayName("Review fails: MO cannot review another MO's job")
+    void reviewApplication_wrongMo_returnsFalse() throws Exception {
+        seedJob("JOB-5", "java", "mo2");   // ∏⁄Œª Ù”⁄ mo2
+        seedApp("APP-5", "TA-5", "JOB-5", "Pending", "");
+
+        boolean result = moService.reviewApplication("APP-5", "mo1", "Approved", "good");  // mo1 …Û∫À
+
+        assertFalse(result);
     }
 
     @Test
-    void shouldFail_whenJobDoesNotBelongToMo() throws Exception {
-        cleanJobsFiles();
-        cleanApplicationFiles();
+    @DisplayName("Review fails (wrong MO): application status and comment unchanged")
+    void reviewApplication_wrongMo_dataUnchanged() throws Exception {
+        seedJob("JOB-5", "java", "mo2");
+        seedApp("APP-5", "TA-5", "JOB-5", "Pending", "");
 
-        String moName = "mo1";
-        String otherMoName = "mo2";
-        String jobId = "JOB-5";
-        String appId = "APP-5";
+        moService.reviewApplication("APP-5", "mo1", "Approved", "good");
 
-        new JobRepository().saveAll(List.of(
-                new Job(jobId, "java", "Module TA", 10, otherMoName, "other@bupt.edu",
-                        "Recruiting", "2026-03-09 10:00:00", "java grade>90",
-                        "help teacher", "2026-9")
-        ));
-
-        new ApplicationRepository().saveAll(List.of(
-                new Application(appId, "TA-5", jobId, "2026-03-10 12:00:00", "Pending", "")
-        ));
-
-        MOService service = new MOService();
-        boolean ok = service.reviewApplication(appId, moName, "Approved", "good");
-        assertFalse(ok);
-
-        List<Application> after = new ApplicationRepository().loadAll();
-        Application updated = findById(after, appId);
+        Application updated = findById("APP-5");
         assertNotNull(updated);
         assertEquals("Pending", updated.getStatus());
-        assertEquals("", updated.getReviewComment());
+        assertEquals("",        updated.getReviewComment());
+    }
+
+    // =========================================================================
+    // ◊¥Ã¨ª˙‘º ¯
+    // =========================================================================
+
+    @Test
+    @DisplayName("Review fails: already Approved application cannot be reviewed again")
+    void reviewApplication_alreadyApproved_returnsFalse() throws Exception {
+        seedJob("JOB-6", "math", "mo1");
+        seedApp("APP-6", "TA-6", "JOB-6", "Approved", "old");  // “—æ≠ « Approved
+
+        boolean result = moService.reviewApplication("APP-6", "mo1", "Rejected", "new");
+
+        assertFalse(result);
     }
 
     @Test
-    void shouldFail_whenApplicationStatusNotPending() throws Exception {
-        cleanJobsFiles();
-        cleanApplicationFiles();
+    @DisplayName("Review fails (not Pending): original status and comment preserved")
+    void reviewApplication_alreadyApproved_originalDataPreserved() throws Exception {
+        seedJob("JOB-6", "math", "mo1");
+        seedApp("APP-6", "TA-6", "JOB-6", "Approved", "old");
 
-        String moName = "mo1";
-        String jobId = "JOB-6";
-        String appId = "APP-6";
+        moService.reviewApplication("APP-6", "mo1", "Rejected", "new");
 
-        new JobRepository().saveAll(List.of(
-                new Job(jobId, "math", "Module TA", 10, moName, "mo@bupt.edu",
-                        "Recruiting", "2026-03-11 10:00:00", "math grade>90",
-                        "help student", "2026-9")
-        ));
-
-        new ApplicationRepository().saveAll(List.of(
-                new Application(appId, "TA-6", jobId, "2026-03-12 12:00:00", "Approved", "old")
-        ));
-
-        MOService service = new MOService();
-        boolean ok = service.reviewApplication(appId, moName, "Rejected", "new");
-        assertFalse(ok);
-
-        List<Application> after = new ApplicationRepository().loadAll();
-        Application updated = findById(after, appId);
+        Application updated = findById("APP-6");
         assertNotNull(updated);
         assertEquals("Approved", updated.getStatus());
-        assertEquals("old", updated.getReviewComment());
+        assertEquals("old",      updated.getReviewComment());
     }
 }
-

@@ -1,185 +1,143 @@
 package com.group4.tarecruitment.view;
 
+import com.group4.tarecruitment.controller.AdminController;
 import com.group4.tarecruitment.model.Applicant;
 import com.group4.tarecruitment.service.ApplicantService;
 import com.group4.tarecruitment.service.AuthService;
-import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class RoleSelectView {
     private final Stage stage;
+    private AdminController adminController;
     private final AuthService authService = new AuthService();
-    private static final String[] ROLES = {"TA", "MO", "Admin"};
-
-    private enum AuthMode {
-        LOGIN,
-        REGISTER
-    }
 
     public RoleSelectView(Stage stage) {
         this.stage = stage;
     }
 
     public Parent createContent() {
-        Label title = new Label("TA Recruitment System");
-        title.setFont(new Font(26));
-        title.setStyle("-fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+        Label pageTitle = new Label("International School Teaching Assistant Recruitment");
+        pageTitle.getStyleClass().add("login-title");
 
-        Label subtitle = new Label("注册、登录");
-        subtitle.setFont(new Font(15));
-        subtitle.setStyle("-fx-text-fill: #4b5563;");
+        Label pageSubtitle = new Label("Login or register with your username, password, and selected role.");
+        pageSubtitle.getStyleClass().add("login-subtitle");
 
-        StackPane contentPane = new StackPane();
-        contentPane.getChildren().add(createHomePane(contentPane));
+        VBox titleBox = new VBox(8, pageTitle, pageSubtitle);
+        titleBox.setAlignment(Pos.TOP_LEFT);
 
-        VBox root = new VBox(18, title, subtitle, contentPane);
-        root.setAlignment(Pos.TOP_CENTER);
-        root.setPadding(new Insets(28, 22, 28, 22));
-        root.setStyle("-fx-background-color: #f5f7fb;");
+        Label cardTitle = new Label("Account Login");
+        cardTitle.getStyleClass().add("login-card-title");
 
-        return root;
-    }
+        Label roleLabel = new Label("Role");
+        roleLabel.getStyleClass().add("login-label");
+        ComboBox<String> roleBox = new ComboBox<>();
+        roleBox.getItems().addAll("TA", "MO", "Admin");
+        roleBox.setValue("TA");
+        roleBox.getStyleClass().add("login-combo");
+        roleBox.setMaxWidth(Double.MAX_VALUE);
 
-    private Parent createHomePane(StackPane contentPane) {
-        VBox card = new VBox(16);
-        card.setPadding(new Insets(24));
-        card.setAlignment(Pos.CENTER);
-        card.setStyle("-fx-background-color: white; -fx-background-radius: 14;"
-                + " -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 3);");
-
-        Label tip = new Label("请选择入口");
-        tip.setFont(new Font(16));
-        tip.setStyle("-fx-text-fill: #111827; -fx-font-weight: bold;");
-
-        Button registerBtn = new Button("注册");
-        Button loginBtn = new Button("登录");
-
-        registerBtn.setPrefWidth(260);
-        loginBtn.setPrefWidth(260);
-
-        String btnBase = "-fx-font-size: 14px; -fx-padding: 12 18; -fx-background-radius: 10; -fx-font-weight: bold; -fx-text-fill: white;";
-        registerBtn.setStyle(btnBase + "-fx-background-color: #9b59b6;");
-        loginBtn.setStyle(btnBase + "-fx-background-color: #3498db;");
-
-        Label note = new Label("提示：请选择角色后进行注册或登录");
-        note.setFont(new Font(12));
-        note.setStyle("-fx-text-fill: #6b7280;");
-        note.setWrapText(true);
-
-        registerBtn.setOnAction(e -> contentPane.getChildren().setAll(createAuthPane(contentPane, AuthMode.REGISTER, null, false)));
-        loginBtn.setOnAction(e -> contentPane.getChildren().setAll(createAuthPane(contentPane, AuthMode.LOGIN, null, false)));
-
-        VBox actions = new VBox(14, registerBtn, loginBtn);
-        actions.setAlignment(Pos.CENTER);
-
-        card.getChildren().addAll(tip, actions, note);
-        VBox root = new VBox(card);
-        root.setAlignment(Pos.CENTER);
-        return root;
-    }
-
-    private Parent createAuthPane(StackPane contentPane, AuthMode mode, String presetRole, boolean goToJobList) {
-        Label title = new Label(mode == AuthMode.LOGIN ? "登录" : "注册");
-        title.setFont(new Font(20));
-        title.setStyle("-fx-font-weight: bold; -fx-text-fill: #2c3e50;");
-
-        Label roleLabel = new Label("身份（角色）");
-        roleLabel.setStyle("-fx-text-fill: #374151; -fx-font-weight: bold; -fx-font-size: 13px;");
-
-        ComboBox<String> roleCombo = new ComboBox<>(FXCollections.observableArrayList(ROLES));
-        roleCombo.setPrefWidth(260);
-        roleCombo.setPromptText("请选择角色");
-        if (presetRole != null) {
-            roleCombo.setValue(presetRole);
-        }
-
-        Label usernameLabel = new Label("用户名");
-        usernameLabel.setStyle("-fx-text-fill: #374151; -fx-font-weight: bold; -fx-font-size: 13px;");
+        Label usernameLabel = new Label("Account");
+        usernameLabel.getStyleClass().add("login-label");
         TextField usernameField = new TextField();
-        usernameField.setPrefWidth(260);
         usernameField.setPromptText("Enter username");
+        usernameField.getStyleClass().add("login-input");
+        usernameField.setMaxWidth(Double.MAX_VALUE);
 
-        Label passwordLabel = new Label("密码");
-        passwordLabel.setStyle("-fx-text-fill: #374151; -fx-font-weight: bold; -fx-font-size: 13px;");
+        Label passwordLabel = new Label("Password");
+        passwordLabel.getStyleClass().add("login-label");
         PasswordField passwordField = new PasswordField();
-        passwordField.setPrefWidth(260);
         passwordField.setPromptText("Enter password");
+        passwordField.getStyleClass().add("login-input");
+        passwordField.setMaxWidth(Double.MAX_VALUE);
 
         Label messageLabel = new Label();
+        messageLabel.getStyleClass().addAll("status-label", "login-link");
         messageLabel.setWrapText(true);
-        messageLabel.setStyle("-fx-text-fill: #dc2626; -fx-font-size: 13px;");
+        messageLabel.setMinHeight(38);
 
-        Button submitBtn = new Button(mode == AuthMode.LOGIN ? "登录" : "注册");
-        Button backBtn = new Button("返回首页");
+        Button loginBtn = new Button("login");
+        loginBtn.getStyleClass().addAll("login-button", "primary-button");
+        loginBtn.setMaxWidth(Double.MAX_VALUE);
 
-        submitBtn.setPrefWidth(260);
-        backBtn.setPrefWidth(260);
+        Button registerBtn = new Button("Register");
+        registerBtn.getStyleClass().addAll("login-button", "secondary-button");
+        registerBtn.setMaxWidth(Double.MAX_VALUE);
 
-        String submitStyle = "-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold;";
-        if (mode == AuthMode.REGISTER) {
-            submitStyle = "-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-font-weight: bold;";
-        }
-        submitBtn.setStyle(submitStyle);
-        backBtn.setStyle("-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-weight: bold;");
+        Hyperlink hintLink = new Hyperlink("No account? You need to click 'Register'.");
+        hintLink.getStyleClass().add("login-link");
+        hintLink.setFocusTraversable(false);
 
-        VBox form = new VBox(10);
-        form.setAlignment(Pos.CENTER);
-        form.getChildren().addAll(
-                title,
-                roleLabel,
-                roleCombo,
-                usernameLabel,
-                usernameField,
-                passwordLabel,
-                passwordField,
-                submitBtn,
-                backBtn,
-                messageLabel
+        loginBtn.setOnAction(e -> handleLogin(usernameField, passwordField, messageLabel, roleBox.getValue()));
+        registerBtn.setOnAction(e -> handleRegister(usernameField, passwordField, messageLabel, roleBox.getValue()));
+        passwordField.setOnAction(e -> handleLogin(usernameField, passwordField, messageLabel, roleBox.getValue()));
+
+        HBox buttonRow = new HBox(12, loginBtn, registerBtn);
+        HBox.setHgrow(loginBtn, Priority.ALWAYS);
+        HBox.setHgrow(registerBtn, Priority.ALWAYS);
+
+        VBox loginCard = new VBox(12,
+                cardTitle,
+                roleLabel, roleBox,
+                usernameLabel, usernameField,
+                passwordLabel, passwordField,
+                buttonRow,
+                messageLabel,
+                hintLink
         );
+        loginCard.getStyleClass().add("login-card");
+        loginCard.setAlignment(Pos.CENTER_LEFT);
 
-        form.setPadding(new Insets(18));
-        form.setStyle("-fx-background-color: white; -fx-background-radius: 14;"
-                + " -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 3);");
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        backBtn.setOnAction(e -> contentPane.getChildren().setAll(createHomePane(contentPane)));
+        HBox contentRow = new HBox(40, loginCard, spacer);
+        contentRow.setAlignment(Pos.CENTER_LEFT);
 
-        submitBtn.setOnAction(e -> {
-            String role = roleCombo.getValue();
-            if (role == null || role.trim().isEmpty()) {
-                messageLabel.setText("请选择角色");
-                return;
-            }
+        VBox shell = new VBox(36, titleBox, contentRow);
+        shell.getStyleClass().add("login-shell");
+        shell.setAlignment(Pos.CENTER_LEFT);
+        shell.setMaxWidth(Double.MAX_VALUE);
 
-            messageLabel.setText("");
-            if (mode == AuthMode.LOGIN) {
-                handleLogin(usernameField, passwordField, messageLabel, role, goToJobList);
-            } else {
-                handleRegister(usernameField, passwordField, messageLabel, role);
-            }
-        });
+        StackPane overlay = new StackPane(shell);
+        overlay.getStyleClass().addAll("login-page", "login-overlay");
+        StackPane.setAlignment(shell, Pos.CENTER_LEFT);
+        overlay.setPadding(new Insets(24));
 
-        return form;
+        return overlay;
     }
 
-    // 登录逻辑（保留你原来的验证逻辑；新增：可选进入 TA 岗位列表）
-    private void handleLogin(TextField usernameField, PasswordField passwordField, Label messageLabel, String role, boolean goToJobList) {
+    private void handleLogin(TextField usernameField, PasswordField passwordField, Label messageLabel, String role) {
         String username = usernameField.getText().trim();
         String password = passwordField.getText().trim();
 
+        if (role == null || role.isBlank()) {
+            messageLabel.setStyle("-fx-text-fill: #d64545;");
+            messageLabel.setText("Please select a role before logging in.");
+            return;
+        }
         if (username.isEmpty() || password.isEmpty()) {
+            messageLabel.setStyle("-fx-text-fill: #d64545;");
             messageLabel.setText("Username and password cannot be empty.");
             return;
         }
 
         boolean success = authService.login(username, password, role);
         if (!success) {
+            messageLabel.setStyle("-fx-text-fill: #d64545;");
             messageLabel.setText("Invalid " + role + " username or password.");
             return;
         }
@@ -192,18 +150,10 @@ public class RoleSelectView {
                 Applicant existingApplicant = applicantService.getApplicantByUsername(username);
 
                 if (existingApplicant != null) {
-                    if (goToJobList) {
-                        JobListView jobListView = new JobListView(stage, existingApplicant);
-                        stage.getScene().setRoot(jobListView.createContent());
-                        stage.setTitle("可申请TA岗位列表");
-                    } else {
-                        // =============== 【已修改】有档案 → 跳转到 TA Dashboard ===============
-                        TAHomeView taHomeView = new TAHomeView(stage, existingApplicant);
-                        stage.getScene().setRoot(taHomeView.createContent());
-                        stage.setTitle("TA Dashboard");
-                    }
+                    TAHomeView taHomeView = new TAHomeView(stage, existingApplicant);
+                    stage.getScene().setRoot(taHomeView.createContent());
+                    stage.setTitle("TA Dashboard");
                 } else {
-                    // =============== 无档案 → 跳转到创建档案页（不变） ===============
                     HelloView helloView = new HelloView(stage);
                     helloView.setLoginUsername(username);
                     stage.getScene().setRoot(helloView.createContent());
@@ -211,34 +161,47 @@ public class RoleSelectView {
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
+                messageLabel.setStyle("-fx-text-fill: #d64545;");
                 messageLabel.setText("Error loading profile: " + ex.getMessage());
             }
         } else if (role.equals("MO")) {
             TeacherView teacherView = new TeacherView(stage, username);
             stage.getScene().setRoot(teacherView.createContent());
+            stage.setTitle("MO Dashboard");
         } else if (role.equals("Admin")) {
-            AdminView adminView = new AdminView(stage);
-            stage.getScene().setRoot(adminView.createContent());
+            adminController = new AdminController(stage);
+            adminController.showAdminPanel();
         }
     }
 
-    // 注册逻辑（完全保留你原来的验证逻辑）
     private void handleRegister(TextField usernameField, PasswordField passwordField, Label messageLabel, String role) {
         String username = usernameField.getText().trim();
         String password = passwordField.getText().trim();
 
+        if (role == null || role.isBlank()) {
+            messageLabel.setStyle("-fx-text-fill: #d64545;");
+            messageLabel.setText("Please select a role before registering.");
+            return;
+        }
         if (username.isEmpty() || password.isEmpty()) {
+            messageLabel.setStyle("-fx-text-fill: #d64545;");
             messageLabel.setText("Username and password cannot be empty.");
+            return;
+        }
+
+        if (!password.matches("^[A-Za-z0-9]{6,}$")) {
+            messageLabel.setStyle("-fx-text-fill: #d64545;");
+            messageLabel.setText("Password must be at least 6 characters and contain only letters or digits.");
             return;
         }
 
         boolean success = authService.register(username, password, role);
         if (success) {
-            messageLabel.setStyle("-fx-text-fill: green;");
-            messageLabel.setText("Registration successful! Please login.");
+            messageLabel.setStyle("-fx-text-fill: #2d8a52;");
+            messageLabel.setText("Registration successful. You can now log in as " + role + ".");
         } else {
-            messageLabel.setStyle("-fx-text-fill: red;");
-            messageLabel.setText("Registration failed: Username already exists or invalid input.");
+            messageLabel.setStyle("-fx-text-fill: #d64545;");
+            messageLabel.setText("Registration failed: username already exists or input is invalid.");
         }
     }
 }

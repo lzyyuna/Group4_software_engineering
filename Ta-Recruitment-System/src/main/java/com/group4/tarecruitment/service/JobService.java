@@ -5,17 +5,27 @@ import com.group4.tarecruitment.model.Job;
 import com.group4.tarecruitment.repository.ApplicationRepository;
 import com.group4.tarecruitment.repository.JobRepository;
 
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class JobService {
-    private final JobRepository jobRepo = new JobRepository();
-    private final ApplicationRepository appRepo = new ApplicationRepository();
+    private final JobRepository jobRepo;
+    private final ApplicationRepository appRepo;
+
+    public JobService() {
+        this.jobRepo = new JobRepository();
+        this.appRepo = new ApplicationRepository();
+    }
+
+    public JobService(Path jobsPath, Path appsPath) {
+        this.jobRepo = new JobRepository(jobsPath);
+        this.appRepo = new ApplicationRepository(appsPath);
+    }
 
     // TA-003: 获取所有 Recruiting 状态的岗位，按发布时间倒序
     public List<Job> getActiveJobs() throws Exception {
@@ -27,12 +37,11 @@ public class JobService {
 
     // TA-004: 提交申请
     public String submitApplication(String taId, String jobId) throws Exception {
-        // 检查是否已经申请过
         List<Application> apps = appRepo.loadAll();
         boolean alreadyApplied = apps.stream()
                 .anyMatch(a -> a.getTaId().equals(taId) && a.getJobId().equals(jobId));
         if (alreadyApplied) {
-            return null; // 表示已申请
+            return null;
         }
 
         String appId = "APP-" + UUID.randomUUID().toString().substring(0, 8);

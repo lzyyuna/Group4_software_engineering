@@ -43,8 +43,8 @@ public class ProfileController {
                 File target = new File(RESUME_DIR + newName);
                 Files.copy(file.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-                // 保存路径到档案
-                applicant.setResumePath(target.getAbsolutePath());
+// 保存相对路径，而不是绝对路径
+                applicant.setResumePath(RESUME_DIR + newName);
                 service.updateApplicant(applicant);
 
                 Platform.runLater(() -> {

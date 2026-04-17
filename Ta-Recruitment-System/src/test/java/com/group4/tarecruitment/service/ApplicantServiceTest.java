@@ -3,114 +3,175 @@ package com.group4.tarecruitment.service;
 import com.group4.tarecruitment.model.Applicant;
 import com.group4.tarecruitment.repository.ApplicantCsvRepository;
 import com.group4.tarecruitment.repository.ApplicantJsonRepository;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class ApplicantServiceTest {
+/**
+ * Integration tests for ApplicantService.
+ *
+ * ÎªÊ²Ã´ÓÃ¼¯³É²âÊÔ¶ø²»ÊÇ Mock£º
+ *   ApplicantService µÄºËĞÄÖ°Ôğ¾ÍÊÇ°ÑÊı¾İ³Ö¾Ã»¯µ½ CSV + JSON Á½¸öÎÄ¼ş¡£
+ *   Èç¹û Mock µôÎÄ¼ş²Ù×÷£¬¾ÍÎŞ·¨ÑéÖ¤"×Ö¶ÎË³Ğò¡¢±àÂë¡¢Ë«ÎÄ¼şÒ»ÖÂĞÔ"µÈÕæÊµÎÊÌâ¡£
+ *
+ * ÓÅ»¯µã£º
+ *   1. ÓÃ @TempDir Ìæ´úÊÖ¶¯É¾³ıÎÄ¼ş£¬²âÊÔ½áÊøºó×Ô¶¯ÇåÀí£¬»¥²»¸ÉÈÅ
+ *   2. ÓÃ @BeforeEach Í³Ò»³õÊ¼»¯ service£¬±ÜÃâÃ¿¸ö²âÊÔÖØ¸´¹¹Ôì
+ *   3. ÌáÈ¡¹«¹²¶ÏÑÔ·½·¨£¬¼õÉÙÖØ¸´´úÂë
+ *   4. Ã¿¸ö²âÊÔÖ»ÑéÖ¤Ò»¼şÊÂ£¬Ö°Ôğ¸üÇåÎú
+ */
+@DisplayName("ApplicantService Integration Tests")
+class ApplicantServiceTest {
 
-    private static final Path CSV_PATH = Path.of("data", "applicants.csv");
-    private static final Path JSON_PATH = Path.of("data", "applicants.json");
+    @TempDir
+    Path tempDir;
 
-    private void cleanApplicantFiles() {
-        // ä»…æ¸…ç†ä¸ TA åˆ›å»º/ç¼–è¾‘æ¡£æ¡ˆç›¸å…³çš„æ•°æ®æ–‡ä»¶ï¼Œé¿å…å½±å“å…¶å®ƒæµ‹è¯•
-        try {
-            Files.deleteIfExists(CSV_PATH);
-            Files.deleteIfExists(JSON_PATH);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to cleanup applicant files", e);
-        }
+    private ApplicantService service;
+    private Path csvPath;
+    private Path jsonPath;
+
+    @BeforeEach
+    void setUp() throws IOException {
+        // ÓÃÁÙÊ±Ä¿Â¼¸ôÀëÃ¿¸ö²âÊÔµÄÎÄ¼ş£¬²âÊÔ½áÊøºó JUnit ×Ô¶¯É¾³ı
+        csvPath  = tempDir.resolve("applicants.csv");
+        jsonPath = tempDir.resolve("applicants.json");
+
+        // ½« service Ö¸ÏòÁÙÊ±Ä¿Â¼£¨ĞèÒª ApplicantService Ö§³Ö×Ô¶¨ÒåÂ·¾¶µÄ¹¹ÔìÆ÷£©
+        service = new ApplicantService(csvPath, jsonPath);
+    }
+
+    // ©¤©¤ ¸¨Öú·½·¨ ©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤©¤
+
+    /** ¹¹ÔìÒ»¸öÍêÕûµÄ²âÊÔÓÃÉêÇëÕß¶ÔÏó */
+    private Applicant buildApplicant(String taId, String studentId, String name,
+                                     String email, String username) {
+        Applicant a = new Applicant(taId, studentId, name, email,
+                "Java", "Java,Communication", "123456");
+        a.setUsername(username);
+        return a;
+    }
+
+    /** ¶ÏÑÔÉêÇëÕß»ù±¾×Ö¶ÎÕıÈ· */
+    private void assertApplicantFields(Applicant actual, String name, String email,
+                                       String courses, String skills, String contact) {
+        assertNotNull(actual);
+        assertEquals(name,    actual.getName());
+        assertEquals(email,   actual.getEmail());
+        assertEquals(courses, actual.getCourses());
+        assertEquals(skills,  actual.getSkillTags());
+        assertEquals(contact, actual.getContact());
+    }
+
+    // =========================================================================
+    // shouldAddApplicantSuccessfully
+    // =========================================================================
+
+    @Test
+    @DisplayName("Add applicant: in-memory list is updated")
+    void addApplicant_memoryListUpdated() throws Exception {
+        service.addApplicant(buildApplicant("TA-1", "S001", "Alice", "alice@test.com", "user1"));
+
+        List<Applicant> all = service.getAllApplicants();
+        assertEquals(1, all.size());
+        assertEquals("Alice", all.get(0).getName());
     }
 
     @Test
-    void shouldAddApplicantSuccessfully() throws Exception {
-        cleanApplicantFiles();
+    @DisplayName("Add applicant: queryable by studentId with correct fields")
+    void addApplicant_queryableByStudentId() throws Exception {
+        service.addApplicant(buildApplicant("TA-1", "S001", "Alice", "alice@test.com", "user1"));
 
-        ApplicantService service = new ApplicantService();
-        Applicant applicant = new Applicant("TA-TEST-1", "S001", "Alice", "alice@test.com", "Java", "Java,Communication", "123456");
-        applicant.setUsername("user1");
+        Applicant found = service.getApplicantByStudentId("S001");
+        assertApplicantFields(found, "Alice", "alice@test.com", "Java", "Java,Communication", "123456");
+    }
 
-        service.addApplicant(applicant);
+    @Test
+    @DisplayName("Add applicant: queryable by username")
+    void addApplicant_queryableByUsername() throws Exception {
+        service.addApplicant(buildApplicant("TA-1", "S001", "Alice", "alice@test.com", "user1"));
 
-        assertEquals(1, service.getAllApplicants().size());
-        assertEquals("Alice", service.getAllApplicants().get(0).getName());
+        Applicant found = service.getApplicantByUsername("user1");
+        assertNotNull(found);
+        assertEquals("S001", found.getStudentId());
+    }
 
-        // æ ¡éªŒ CSV æŸ¥è¯¢
-        Applicant byStudentId = service.getApplicantByStudentId("S001");
-        assertNotNull(byStudentId);
-        assertEquals("Alice", byStudentId.getName());
-        assertEquals("alice@test.com", byStudentId.getEmail());
-        assertEquals("Java", byStudentId.getCourses());
-        assertEquals("Java,Communication", byStudentId.getSkillTags());
-        assertEquals("123456", byStudentId.getContact());
+    @Test
+    @DisplayName("Add applicant: persisted to CSV correctly")
+    void addApplicant_persistedToCsv() throws Exception {
+        service.addApplicant(buildApplicant("TA-1", "S001", "Alice", "alice@test.com", "user1"));
 
-        Applicant byUsername = service.getApplicantByUsername("user1");
-        assertNotNull(byUsername);
-        assertEquals("S001", byUsername.getStudentId());
-
-        // æ ¡éªŒ JSON æŒä¹…åŒ–
-        ApplicantJsonRepository jsonRepo = new ApplicantJsonRepository();
-        List<Applicant> jsonList = jsonRepo.loadAll();
-        assertEquals(1, jsonList.size());
-        assertEquals("TA-TEST-1", jsonList.get(0).getTaId());
-        assertEquals("Alice", jsonList.get(0).getName());
-        assertEquals("alice@test.com", jsonList.get(0).getEmail());
-
-        // æ ¡éªŒ CSV æŒä¹…åŒ–ï¼ˆç›´æ¥è¯» CSV æ–‡ä»¶ï¼‰
-        ApplicantCsvRepository csvRepo = new ApplicantCsvRepository();
+        ApplicantCsvRepository csvRepo = new ApplicantCsvRepository(csvPath);
         List<Applicant> csvList = csvRepo.loadAll();
         assertEquals(1, csvList.size());
-        assertEquals("TA-TEST-1", csvList.get(0).getTaId());
+        assertEquals("TA-1",  csvList.get(0).getTaId());
         assertEquals("Alice", csvList.get(0).getName());
     }
 
     @Test
-    void shouldUpdateApplicantSuccessfully_csvAndJson() throws Exception {
-        cleanApplicantFiles();
+    @DisplayName("Add applicant: persisted to JSON correctly")
+    void addApplicant_persistedToJson() throws Exception {
+        service.addApplicant(buildApplicant("TA-1", "S001", "Alice", "alice@test.com", "user1"));
 
-        ApplicantService service = new ApplicantService();
-        Applicant origin = new Applicant(
-                "TA-TEST-2",
-                "S002",
-                "Bob",
-                "bob@test.com",
-                "Python",
-                "Python",
-                "111"
-        );
-        origin.setUsername("user2");
-        service.addApplicant(origin);
+        ApplicantJsonRepository jsonRepo = new ApplicantJsonRepository(jsonPath);
+        List<Applicant> jsonList = jsonRepo.loadAll();
+        assertEquals(1, jsonList.size());
+        assertEquals("TA-1",              jsonList.get(0).getTaId());
+        assertEquals("Alice",             jsonList.get(0).getName());
+        assertEquals("alice@test.com",    jsonList.get(0).getEmail());
+    }
 
-        Applicant updated = new Applicant(
-                "TA-TEST-2",
-                "S002",
-                "Bobby",
-                "bobby@test.com",
-                "Python,Java",
-                "Python,Java",
-                "222"
-        );
+    // =========================================================================
+    // shouldUpdateApplicantSuccessfully
+    // =========================================================================
+
+    @Test
+    @DisplayName("Update applicant: fields updated in memory")
+    void updateApplicant_fieldsUpdatedInMemory() throws Exception {
+        service.addApplicant(buildApplicant("TA-2", "S002", "Bob", "bob@test.com", "user2"));
+
+        Applicant updated = new Applicant("TA-2", "S002", "Bobby", "bobby@test.com",
+                "Python,Java", "Python,Java", "222");
         updated.setUsername("user2");
         service.updateApplicant(updated);
 
-        Applicant byStudentId = service.getApplicantByStudentId("S002");
-        assertNotNull(byStudentId);
-        assertEquals("Bobby", byStudentId.getName());
-        assertEquals("bobby@test.com", byStudentId.getEmail());
-        assertEquals("Python,Java", byStudentId.getCourses());
-        assertEquals("Python,Java", byStudentId.getSkillTags());
-        assertEquals("222", byStudentId.getContact());
+        Applicant found = service.getApplicantByStudentId("S002");
+        assertApplicantFields(found, "Bobby", "bobby@test.com", "Python,Java", "Python,Java", "222");
+    }
 
-        // JSON æ ¡éªŒ
-        ApplicantJsonRepository jsonRepo = new ApplicantJsonRepository();
+    @Test
+    @DisplayName("Update applicant: no duplicate record created")
+    void updateApplicant_noDuplicateRecord() throws Exception {
+        service.addApplicant(buildApplicant("TA-2", "S002", "Bob", "bob@test.com", "user2"));
+
+        Applicant updated = new Applicant("TA-2", "S002", "Bobby", "bobby@test.com",
+                "Python,Java", "Python,Java", "222");
+        updated.setUsername("user2");
+        service.updateApplicant(updated);
+
+        // ¸üĞÂºó¼ÇÂ¼ÊıÓ¦ÈÔÎª 1
+        assertEquals(1, service.getAllApplicants().size());
+    }
+
+    @Test
+    @DisplayName("Update applicant: JSON file reflects updated data")
+    void updateApplicant_jsonFileUpdated() throws Exception {
+        service.addApplicant(buildApplicant("TA-2", "S002", "Bob", "bob@test.com", "user2"));
+
+        Applicant updated = new Applicant("TA-2", "S002", "Bobby", "bobby@test.com",
+                "Python,Java", "Python,Java", "222");
+        updated.setUsername("user2");
+        service.updateApplicant(updated);
+
+        ApplicantJsonRepository jsonRepo = new ApplicantJsonRepository(jsonPath);
         List<Applicant> jsonList = jsonRepo.loadAll();
         assertEquals(1, jsonList.size());
-        assertEquals("Bobby", jsonList.get(0).getName());
+        assertEquals("Bobby",          jsonList.get(0).getName());
         assertEquals("bobby@test.com", jsonList.get(0).getEmail());
     }
 }

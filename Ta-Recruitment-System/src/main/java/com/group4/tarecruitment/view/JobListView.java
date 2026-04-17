@@ -12,6 +12,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class JobListView {
@@ -21,20 +22,27 @@ public class JobListView {
     private final int PAGE_SIZE = 10;
     private int currentPage = 1;
 
+    // 当前页使用的过滤控件
+    private CheckBox javaCb;
+    private CheckBox englishCb;
+    private CheckBox teachingCb;
+    private CheckBox pythonCb;
+    private CheckBox officeCb;
+    private ComboBox<String> typeCombo;
+
     public JobListView(Stage stage, Applicant applicant) {
         this.stage = stage;
         this.applicant = applicant;
     }
 
     public Parent createContent() {
-        Label title = new Label("可申请 TA 岗位列表");
+        Label title = new Label("Available TA Positions");
         title.setFont(new Font(18));
         title.setStyle("-fx-font-weight: bold; -fx-text-fill: #2c3e50;");
 
-        // 按钮统一美化
-        Button refreshBtn = new Button("刷新列表");
-        Button myAppsBtn = new Button("我的申请记录");
-        Button backToHomeBtn = new Button("返回TA首页");
+        Button refreshBtn = new Button("Refresh List");
+        Button myAppsBtn = new Button("My Applications");
+        Button backToHomeBtn = new Button("Back to TA Home");
 
         String btnStyle = "-fx-font-size: 14px; -fx-padding: 7 14; -fx-background-radius: 5; -fx-font-weight: bold;";
         refreshBtn.setStyle(btnStyle + "-fx-background-color: #3498db; -fx-text-fill: white;");
@@ -44,26 +52,54 @@ public class JobListView {
         HBox topBar = new HBox(10, refreshBtn, myAppsBtn, backToHomeBtn);
         topBar.setAlignment(Pos.CENTER_LEFT);
 
-        // 列表容器美化
+        // ===================== Filter Bar =====================
+        javaCb = new CheckBox("Java");
+        englishCb = new CheckBox("English");
+        teachingCb = new CheckBox("Teaching");
+        pythonCb = new CheckBox("Python");
+        officeCb = new CheckBox("Office");
+
+        typeCombo = new ComboBox<>();
+        typeCombo.getItems().addAll("All", "Module TA", "Invigilation TA");
+        typeCombo.setValue("All");
+        typeCombo.setPrefWidth(150);
+
+        Button resetBtn = new Button("Reset");
+        resetBtn.setStyle(btnStyle + "-fx-background-color: #95a5a6; -fx-text-fill: white;");
+
+        HBox filterBar = new HBox(
+                10,
+                new Label("Skill Tags:"),
+                javaCb, englishCb, teachingCb, pythonCb, officeCb,
+                new Label("Position Type:"),
+                typeCombo,
+                resetBtn
+        );
+        filterBar.setAlignment(Pos.CENTER_LEFT);
+        filterBar.setPadding(new Insets(5, 0, 10, 0));
+
         VBox jobListBox = new VBox(10);
         jobListBox.setPadding(new Insets(15));
         jobListBox.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 8;");
 
-        // 分页按钮
         HBox pageBox = new HBox(10);
-        Button prevBtn = new Button("上一页");
-        Button nextBtn = new Button("下一页");
-        Label pageLabel = new Label("第 1 页");
+        Button prevBtn = new Button("Previous");
+        Button nextBtn = new Button("Next");
+        Label pageLabel = new Label("Page 1");
         pageBox.getChildren().addAll(prevBtn, pageLabel, nextBtn);
         pageBox.setAlignment(Pos.CENTER);
 
-        // 加载数据
         loadJobs(jobListBox, pageLabel);
 
-        refreshBtn.setOnAction(e -> loadJobs(jobListBox, pageLabel));
+        refreshBtn.setOnAction(e -> {
+            currentPage = 1;
+            loadJobs(jobListBox, pageLabel);
+        });
+
         myAppsBtn.setOnAction(e -> {
             MyApplicationView myAppView = new MyApplicationView(stage, applicant);
             stage.getScene().setRoot(myAppView.createContent());
+            stage.setTitle("My Applications");
         });
 
         backToHomeBtn.setOnAction(e -> {
@@ -78,35 +114,130 @@ public class JobListView {
                 loadJobs(jobListBox, pageLabel);
             }
         });
+
         nextBtn.setOnAction(e -> {
             try {
-                int totalPages = (int) Math.ceil((double) jobService.getActiveJobs().size() / PAGE_SIZE);
+                int totalPages = getTotalPages();
                 if (currentPage < totalPages) {
                     currentPage++;
                     loadJobs(jobListBox, pageLabel);
                 }
-            } catch (Exception ex) { ex.printStackTrace(); }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         });
 
-        VBox root = new VBox(15, title, topBar, jobListBox, new Separator(), pageBox);
+        // 实时刷新
+        javaCb.setOnAction(e -> refreshFilteredJobs(jobListBox, pageLabel));
+        englishCb.setOnAction(e -> refreshFilteredJobs(jobListBox, pageLabel));
+        teachingCb.setOnAction(e -> refreshFilteredJobs(jobListBox, pageLabel));
+        pythonCb.setOnAction(e -> refreshFilteredJobs(jobListBox, pageLabel));
+        officeCb.setOnAction(e -> refreshFilteredJobs(jobListBox, pageLabel));
+        typeCombo.setOnAction(e -> refreshFilteredJobs(jobListBox, pageLabel));
+
+        // Reset
+        resetBtn.setOnAction(e -> {
+            javaCb.setSelected(false);
+            englishCb.setSelected(false);
+            teachingCb.setSelected(false);
+            pythonCb.setSelected(false);
+            officeCb.setSelected(false);
+            typeCombo.setValue("All");
+            currentPage = 1;
+            loadJobs(jobListBox, pageLabel);
+        });
+
+        VBox root = new VBox(15, title, topBar, filterBar, jobListBox, new Separator(), pageBox);
         root.setPadding(new Insets(25));
         root.setStyle("-fx-background-color: #f5f6fa;");
         return root;
     }
 
+    private void refreshFilteredJobs(VBox jobListBox, Label pageLabel) {
+        currentPage = 1;
+        loadJobs(jobListBox, pageLabel);
+    }
+
+    private int getTotalPages() throws Exception {
+        List<Job> filteredJobs = getFilteredJobs();
+        if (filteredJobs.isEmpty()) {
+            return 1;
+        }
+        return (int) Math.ceil((double) filteredJobs.size() / PAGE_SIZE);
+    }
+
+    private List<Job> getFilteredJobs() throws Exception {
+        List<Job> activeJobs = jobService.getActiveJobs();
+        List<Job> filteredJobs = new ArrayList<>();
+
+        for (Job job : activeJobs) {
+            if (matchesFilters(job)) {
+                filteredJobs.add(job);
+            }
+        }
+
+        return filteredJobs;
+    }
+
+    private boolean matchesFilters(Job job) {
+        String skillRequirements = job.getSkillRequirements() == null
+                ? ""
+                : job.getSkillRequirements().toLowerCase();
+
+        // 多选技能标签：叠加过滤（AND）
+        if (javaCb.isSelected() && !skillRequirements.contains("java")) {
+            return false;
+        }
+        if (englishCb.isSelected() && !skillRequirements.contains("english")) {
+            return false;
+        }
+        if (teachingCb.isSelected() && !skillRequirements.contains("teaching")) {
+            return false;
+        }
+        if (pythonCb.isSelected() && !skillRequirements.contains("python")) {
+            return false;
+        }
+        if (officeCb.isSelected() && !skillRequirements.contains("office")) {
+            return false;
+        }
+
+        // 单选岗位类型
+        String selectedType = typeCombo.getValue();
+        if (selectedType != null
+                && !"All".equals(selectedType)
+                && job.getPositionType() != null
+                && !job.getPositionType().equalsIgnoreCase(selectedType)) {
+            return false;
+        }
+
+        return selectedType == null
+                || "All".equals(selectedType)
+                || (job.getPositionType() != null && job.getPositionType().equalsIgnoreCase(selectedType));
+    }
+
     private void loadJobs(VBox jobListBox, Label pageLabel) {
         jobListBox.getChildren().clear();
         try {
-            List<Job> activeJobs = jobService.getActiveJobs();
-            int totalPages = (int) Math.ceil((double) activeJobs.size() / PAGE_SIZE);
+            List<Job> filteredJobs = getFilteredJobs();
+            int totalPages = filteredJobs.isEmpty() ? 1 : (int) Math.ceil((double) filteredJobs.size() / PAGE_SIZE);
+
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
+            }
+            if (currentPage < 1) {
+                currentPage = 1;
+            }
+
             int start = (currentPage - 1) * PAGE_SIZE;
-            int end = Math.min(start + PAGE_SIZE, activeJobs.size());
-            List<Job> pageJobs = activeJobs.subList(start, end);
+            int end = Math.min(start + PAGE_SIZE, filteredJobs.size());
+
+            List<Job> pageJobs = filteredJobs.isEmpty() ? new ArrayList<>() : filteredJobs.subList(start, end);
 
             if (pageJobs.isEmpty()) {
-                Label emptyLabel = new Label("暂无可申请岗位");
+                Label emptyLabel = new Label("No Matched Jobs");
                 emptyLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #7f8c8d;");
                 jobListBox.getChildren().add(emptyLabel);
+                pageLabel.setText("Page 1 / 1");
                 return;
             }
 
@@ -116,25 +247,27 @@ public class JobListView {
                 jobItem.setStyle("-fx-padding: 12; -fx-background-color: white; -fx-background-radius: 6; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 4,0,0,1);");
 
                 Label idLabel = new Label("ID: " + job.getJobId());
-                Label courseLabel = new Label("课程: " + job.getCourseName());
-                Label typeLabel = new Label("类型: " + job.getPositionType());
-                Label workloadLabel = new Label("周工作量: " + job.getWeeklyWorkload() + "h");
+                Label courseLabel = new Label("Course: " + job.getCourseName());
+                Label typeLabel = new Label("Type: " + job.getPositionType());
+                Label workloadLabel = new Label("Weekly Workload: " + job.getWeeklyWorkload() + "h");
                 Label moLabel = new Label("MO: " + job.getMoName());
 
-                Button detailBtn = new Button("查看详情");
+                Button detailBtn = new Button("View Details");
                 detailBtn.setStyle("-fx-font-size: 13px; -fx-padding: 6 12; -fx-background-color: #3498db; -fx-text-fill: white; -fx-background-radius: 5;");
 
                 detailBtn.setOnAction(e -> {
                     JobDetailView detailView = new JobDetailView(stage, applicant, job);
                     stage.getScene().setRoot(detailView.createContent());
+                    stage.setTitle("Job Details");
                 });
 
                 jobItem.getChildren().addAll(idLabel, courseLabel, typeLabel, workloadLabel, moLabel, detailBtn);
                 jobListBox.getChildren().add(jobItem);
             }
-            pageLabel.setText(String.format("第 %d / %d 页", currentPage, totalPages));
+
+            pageLabel.setText(String.format("Page %d / %d", currentPage, totalPages));
         } catch (Exception e) {
-            jobListBox.getChildren().add(new Label("加载失败: " + e.getMessage()));
+            jobListBox.getChildren().add(new Label("Load failed: " + e.getMessage()));
             e.printStackTrace();
         }
     }
