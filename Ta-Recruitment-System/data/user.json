@@ -1,10 +1,5 @@
 [
   {
-    "username": "lzy",
-    "password": "123",
-    "role": "TA"
-  },
-  {
     "username": "mo",
     "password": "123456",
     "role": "MO"
@@ -75,43 +70,98 @@
     "role": "TA"
   },
   {
-    "username": "111",
-    "password": "111",
-    "role": "MO"
-  },
-  {
-    "username": "admin",
-    "password": "111",
+    "username": "admin1",
+    "password": "123456",
     "role": "Admin"
   },
   {
-    "username": "111222",
-    "password": "111",
+    "username": "admin",
+    "password": "123456",
+    "role": "Admin"
+  },
+  {
+    "username": "ta1",
+    "password": "333333",
     "role": "TA"
   },
   {
-    "username": "223",
-    "password": "223",
-    "role": "TA"
-  },
-  {
-    "username": "222",
-    "password": "222",
+    "username": "MO",
+    "password": "333333",
     "role": "MO"
   },
   {
-    "username": "2223",
-    "password": "2223",
-    "role": "MO"
+    "username": "Admin 001",
+    "password": "123456",
+    "role": "Admin"
   },
   {
-    "username": "123",
-    "password": "123",
+    "username": "admin001",
+    "password": "123456",
+    "role": "Admin"
+  },
+  {
+    "username": "TA1",
+    "password": "111111",
     "role": "TA"
   },
   {
-    "username": "lzy111",
-    "password": "123",
+    "username": "TA001",
+    "password": "111111",
+    "role": "TA"
+  },
+  {
+    "username": "yi2",
+    "password": "123456",
+    "role": "Admin"
+  },
+  {
+    "username": "jing1",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "yuii",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "yuiii",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "yuiiii",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "yytiu",
+    "password": "123456",
+    "role": "MO"
+  },
+  {
+    "username": "yyti",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "yiu",
+    "password": "123456",
+    "role": "Admin"
+  },
+  {
+    "username": "huhg",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "165",
+    "password": "12343565564",
+    "role": "TA"
+  },
+  {
+    "username": "1",
+    "password": "123456",
     "role": "TA"
   }
 ]

@@ -1,3 +1,5 @@
-"jobId","courseName","positionType","weeklyWorkload","moName","moEmail","status","releaseTime","skillRequirements","jobContent","deadline"
-"JOB-4","math","Module TA","10","mo1","mo@bupt.edu","Recruiting","2026-03-07 10:00:00","math grade>90","help student","2026-9"
-"JOB-9eeab652","Java","Module TA","10","222","222@bupt.edu","Recruiting","2026-04-03 13:44:18","java","check","2026-04-08"
+"jobId","courseName","positionType","weeklyWorkload","moName","moEmail","status","releaseTime","skillRequirements","jobContent","deadline","department"
+"JOB-c4870e8e","math","Module TA","40","mo","mo@bupt.edu","Closed","2026-03-29 17:26:24","math grade>90","help student","5.2","General/Others"
+"JOB-5f77efa1","java","Module TA","40","mo","mo@bupt.edu","Recruiting","2026-03-29 17:31:43","java grade>90","help teacher","5.5","General/Others"
+"JOB-748008e9","math","Module TA","13","huang","huang@bupt.edu","Recruiting","2026-03-31 23:31:18","math skill","","2026-9","General/Others"
+"JOB-cdb05d0d","English","Invigilation TA","23","huang","huang@bupt.edu","Recruiting","2026-04-08 23:18:39","learn English","","","General/Others"
