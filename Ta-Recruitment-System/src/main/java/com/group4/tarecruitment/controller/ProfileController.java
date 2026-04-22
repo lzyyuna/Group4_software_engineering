@@ -10,6 +10,7 @@ import javafx.stage.FileChooser;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.awt.Desktop;
 
 public class ProfileController {
     private final ApplicantService service = new ApplicantService();
@@ -60,5 +61,37 @@ public class ProfileController {
                 });
             }
         }).start();
+    }
+    public void viewResume(Applicant applicant, Label statusLabel) {
+        try {
+            if (applicant == null || applicant.getResumePath() == null || applicant.getResumePath().isBlank()) {
+                statusLabel.setText("❌ No resume uploaded yet");
+                statusLabel.setStyle("-fx-text-fill:red;");
+                return;
+            }
+
+            File file = new File(applicant.getResumePath());
+
+            if (!file.exists()) {
+                statusLabel.setText("❌ Resume file not found");
+                statusLabel.setStyle("-fx-text-fill:red;");
+                return;
+            }
+
+            if (!Desktop.isDesktopSupported()) {
+                statusLabel.setText("❌ Desktop open is not supported on this system");
+                statusLabel.setStyle("-fx-text-fill:red;");
+                return;
+            }
+
+            Desktop.getDesktop().open(file);
+
+            statusLabel.setText("✅ Resume opened");
+            statusLabel.setStyle("-fx-text-fill:green;");
+        } catch (Exception e) {
+            statusLabel.setText("❌ Failed to open resume");
+            statusLabel.setStyle("-fx-text-fill:red;");
+            e.printStackTrace();
+        }
     }
 }
