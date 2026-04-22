@@ -34,6 +34,7 @@ public class ResumeUploadView {
 
         Button uploadBtn = new Button("Upload Resume");
         Button replaceBtn = new Button("Replace Resume");
+        Button viewBtn = new Button("View Resume");
 
         String btnStyle = "-fx-font-size: 16px; " +
                 "-fx-padding: 12px 30px; " +
@@ -41,8 +42,10 @@ public class ResumeUploadView {
                 "-fx-font-weight: bold;";
         uploadBtn.setStyle(btnStyle + "-fx-background-color: #3498db; -fx-text-fill: white;");
         replaceBtn.setStyle(btnStyle + "-fx-background-color: #95a5a6; -fx-text-fill: white;");
+        viewBtn.setStyle(btnStyle + "-fx-background-color: #27ae60; -fx-text-fill: white;");
 
-        HBox btnBox = new HBox(20, uploadBtn, replaceBtn);
+
+        HBox btnBox = new HBox(20, uploadBtn, replaceBtn, viewBtn);
         btnBox.setAlignment(Pos.CENTER);
         btnBox.setPadding(new Insets(20, 0, 20, 0));
 
@@ -77,6 +80,7 @@ public class ResumeUploadView {
 
         uploadBtn.setOnAction(e -> controller.uploadResume(applicant, statusLabel, pathLabel, progressBar));
         replaceBtn.setOnAction(e -> controller.uploadResume(applicant, statusLabel, pathLabel, progressBar));
+        viewBtn.setOnAction(e -> controller.viewResume(applicant, statusLabel));
 
         Button backToHomeBtn = new Button("Back to TA Home");
         backToHomeBtn.setStyle(

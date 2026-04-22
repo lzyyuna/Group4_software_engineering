@@ -2,12 +2,15 @@ package com.group4.tarecruitment.view;
 
 import com.group4.tarecruitment.model.Applicant;
 import com.group4.tarecruitment.model.Job;
+import com.group4.tarecruitment.model.SkillMatchResult;
 import com.group4.tarecruitment.service.JobService;
+import com.group4.tarecruitment.service.SkillMatchService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
@@ -19,7 +22,9 @@ public class JobListView {
     private final Stage stage;
     private final Applicant applicant;
     private final JobService jobService = new JobService();
-    private final int PAGE_SIZE = 10;
+    private final SkillMatchService skillMatchService = new SkillMatchService();
+
+    private final int PAGE_SIZE = 3;
     private int currentPage = 1;
 
     // 当前页使用的过滤控件
@@ -159,14 +164,14 @@ public class JobListView {
     }
 
     private int getTotalPages() throws Exception {
-        List<Job> filteredJobs = getFilteredJobs();
+        List<Job> filteredJobs = getFilteredAndSortedJobs();
         if (filteredJobs.isEmpty()) {
             return 1;
         }
         return (int) Math.ceil((double) filteredJobs.size() / PAGE_SIZE);
     }
 
-    private List<Job> getFilteredJobs() throws Exception {
+    private List<Job> getFilteredAndSortedJobs() throws Exception {
         List<Job> activeJobs = jobService.getActiveJobs();
         List<Job> filteredJobs = new ArrayList<>();
 
@@ -175,6 +180,13 @@ public class JobListView {
                 filteredJobs.add(job);
             }
         }
+
+        // 按匹配度从高到低排序
+        filteredJobs.sort((j1, j2) -> {
+            double s1 = skillMatchService.match(applicant, j1).getMatchScore();
+            double s2 = skillMatchService.match(applicant, j2).getMatchScore();
+            return Double.compare(s2, s1);
+        });
 
         return filteredJobs;
     }
@@ -218,7 +230,7 @@ public class JobListView {
     private void loadJobs(VBox jobListBox, Label pageLabel) {
         jobListBox.getChildren().clear();
         try {
-            List<Job> filteredJobs = getFilteredJobs();
+            List<Job> filteredJobs = getFilteredAndSortedJobs();
             int totalPages = filteredJobs.isEmpty() ? 1 : (int) Math.ceil((double) filteredJobs.size() / PAGE_SIZE);
 
             if (currentPage > totalPages) {
@@ -242,18 +254,39 @@ public class JobListView {
             }
 
             for (Job job : pageJobs) {
-                HBox jobItem = new HBox(15);
-                jobItem.setAlignment(Pos.CENTER_LEFT);
-                jobItem.setStyle("-fx-padding: 12; -fx-background-color: white; -fx-background-radius: 6; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 4,0,0,1);");
+                SkillMatchResult match = skillMatchService.match(applicant, job);
 
-                Label idLabel = new Label("ID: " + job.getJobId());
-                Label courseLabel = new Label("Course: " + job.getCourseName());
-                Label typeLabel = new Label("Type: " + job.getPositionType());
-                Label workloadLabel = new Label("Weekly Workload: " + job.getWeeklyWorkload() + "h");
-                Label moLabel = new Label("MO: " + job.getMoName());
+                VBox jobItem = new VBox(6);
+                jobItem.setPadding(new Insets(10));
+                jobItem.setStyle("-fx-background-color: white; -fx-background-radius: 8; "
+                        + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 4,0,0,1);");
+
+                Label courseLabel = new Label(job.getCourseName() == null ? "Untitled Course" : job.getCourseName());
+                courseLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+
+                Label basicInfoLabel = new Label(
+                        "ID: " + safe(job.getJobId())
+                                + "   |   Type: " + safe(job.getPositionType())
+                                + "   |   Weekly Workload: " + job.getWeeklyWorkload() + "h"
+                                + "   |   MO: " + safe(job.getMoName())
+                );
+                basicInfoLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #555;");
+
+                Label matchScoreLabel = new Label("Match Score: " + String.format("%.1f", match.getMatchScore()) + "%");
+                matchScoreLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #27ae60;");
+
+                Label matchedSkillsLabel = new Label("Matched Skills: " + formatList(match.getMatchedSkills()));
+                matchedSkillsLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #2c3e50;");
+
+                Label missingSkillsLabel = new Label("Missing Skills: " + formatList(match.getMissingSkills()));
+                missingSkillsLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #7f8c8d;");
+
+                Label recommendationLabel = new Label("Recommendation: " + safe(match.getRecommendationLevel()));
+                recommendationLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #8e44ad;");
 
                 Button detailBtn = new Button("View Details");
-                detailBtn.setStyle("-fx-font-size: 13px; -fx-padding: 6 12; -fx-background-color: #3498db; -fx-text-fill: white; -fx-background-radius: 5;");
+                detailBtn.setStyle("-fx-font-size: 13px; -fx-padding: 6 12; -fx-background-color: #3498db; "
+                        + "-fx-text-fill: white; -fx-background-radius: 5;");
 
                 detailBtn.setOnAction(e -> {
                     JobDetailView detailView = new JobDetailView(stage, applicant, job);
@@ -261,7 +294,23 @@ public class JobListView {
                     stage.setTitle("Job Details");
                 });
 
-                jobItem.getChildren().addAll(idLabel, courseLabel, typeLabel, workloadLabel, moLabel, detailBtn);
+                HBox matchInfoRow = new HBox(20, matchScoreLabel, matchedSkillsLabel, missingSkillsLabel);
+                matchInfoRow.setAlignment(Pos.CENTER_LEFT);
+                matchInfoRow.setPadding(new Insets(2, 0, 2, 0));
+
+                HBox bottomBar = new HBox();
+                bottomBar.setAlignment(Pos.CENTER_LEFT);
+                HBox spacer = new HBox();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+                bottomBar.getChildren().addAll(recommendationLabel, spacer, detailBtn);
+
+                jobItem.getChildren().addAll(
+                        courseLabel,
+                        basicInfoLabel,
+                        matchInfoRow,
+                        bottomBar
+                );
+
                 jobListBox.getChildren().add(jobItem);
             }
 
@@ -270,5 +319,16 @@ public class JobListView {
             jobListBox.getChildren().add(new Label("Load failed: " + e.getMessage()));
             e.printStackTrace();
         }
+    }
+
+    private String formatList(List<String> list) {
+        if (list == null || list.isEmpty()) {
+            return "None";
+        }
+        return String.join(", ", list);
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
     }
 }
