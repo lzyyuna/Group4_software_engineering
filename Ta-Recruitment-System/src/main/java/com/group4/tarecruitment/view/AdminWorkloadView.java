@@ -1,20 +1,24 @@
 package com.group4.tarecruitment.view;
 
 import com.group4.tarecruitment.model.Admin;
+import com.group4.tarecruitment.service.AIWorkloadService;
 import com.group4.tarecruitment.service.AdminService;
 import com.group4.tarecruitment.service.AdminServiceImpl;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.File;
@@ -30,7 +34,7 @@ public class AdminWorkloadView {
     private ObservableList<Admin> masterData = FXCollections.observableArrayList();
     private ObservableList<Admin> filteredData = FXCollections.observableArrayList();
     private TableView<Admin> workloadTable;
-    
+
     private double currentThreshold = 10.0;
     private final Runnable onBack;
 
@@ -83,49 +87,48 @@ public class AdminWorkloadView {
         VBox root = new VBox(15);
         root.setPadding(new Insets(20));
 
-        // 1. 标题和顶部按钮区
         Label mainTitle = new Label("TA Workload Overview");
         mainTitle.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
 
         HBox headerButtonsBox = new HBox(15);
         headerButtonsBox.setAlignment(Pos.CENTER_LEFT);
-        
+
         Button backBtn = new Button("Back to Dashboard");
         backBtn.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15;");
-        
+
         Button refreshBtn = new Button("Refresh");
         refreshBtn.setStyle("-fx-background-color: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15;");
 
         Button exportBtn = new Button("Export CSV");
         exportBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15;");
 
-        // 阈值设定
+        Button aiAnalysisBtn = new Button("AI Analysis");
+        aiAnalysisBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15;");
+
         Label thresholdLabel = new Label("Weekly Threshold:");
         thresholdLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #34495e;");
         TextField thresholdInput = new TextField(String.valueOf(currentThreshold));
         thresholdInput.setPrefWidth(60);
         Button setThresholdBtn = new Button("Set Threshold");
         setThresholdBtn.setStyle("-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15;");
-        
-        headerButtonsBox.getChildren().addAll(refreshBtn, exportBtn, setThresholdBtn, thresholdLabel, thresholdInput, backBtn);
 
-        // 2. 白色卡片区域（包含过滤和数据表）
+        headerButtonsBox.getChildren().addAll(refreshBtn, exportBtn, aiAnalysisBtn, setThresholdBtn, thresholdLabel, thresholdInput, backBtn);
+
         VBox whiteCard = new VBox(15);
         whiteCard.setPadding(new Insets(20));
         whiteCard.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);");
         VBox.setVgrow(whiteCard, Priority.ALWAYS);
 
-        // Filter bar
         HBox filterBar = new HBox(15);
         filterBar.setAlignment(Pos.CENTER_LEFT);
-        
+
         TextField taNameFilter = new TextField();
         taNameFilter.setPromptText("Filter by TA Name");
         TextField courseFilter = new TextField();
         courseFilter.setPromptText("Filter by Course");
         TextField moFilter = new TextField();
         moFilter.setPromptText("Filter by Hiring MO");
-        
+
         Button searchBtn = new Button("Search");
         searchBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold;");
         Button clearBtn = new Button("Clear Filters");
@@ -133,14 +136,12 @@ public class AdminWorkloadView {
 
         filterBar.getChildren().addAll(taNameFilter, courseFilter, moFilter, searchBtn, clearBtn);
 
-        // Table
         workloadTable = new TableView<>();
         setupTableColumns();
         workloadTable.setItems(filteredData);
         VBox.setVgrow(workloadTable, Priority.ALWAYS);
 
         whiteCard.getChildren().addAll(filterBar, workloadTable);
-
         root.getChildren().addAll(mainTitle, headerButtonsBox, whiteCard);
 
         loadData();
@@ -176,7 +177,7 @@ public class AdminWorkloadView {
                 .filter(a -> crs.isEmpty() || (a.getCourseName() != null && a.getCourseName().toLowerCase().contains(crs)))
                 .filter(a -> mo.isEmpty() || (a.getHireMo() != null && a.getHireMo().toLowerCase().contains(mo)))
                 .collect(Collectors.toList()));
-            
+
             filteredData.sort((a, b) -> Double.compare(b.getTotalWorkload(), a.getTotalWorkload()));
             workloadTable.refresh();
         });
@@ -206,6 +207,8 @@ public class AdminWorkloadView {
                 }
             }
         });
+
+        aiAnalysisBtn.setOnAction(e -> runAiAnalysis());
 
         return root;
     }
@@ -252,7 +255,6 @@ public class AdminWorkloadView {
 
         workloadTable.getColumns().addAll(idCol, nameCol, moCol, posCol, crsCol, weekCol, totCol, excCol, sugCol, dateCol);
 
-        // Row factory for coloring red when overloaded
         workloadTable.setRowFactory(tv -> new TableRow<Admin>() {
             @Override
             protected void updateItem(Admin item, boolean empty) {
@@ -260,7 +262,7 @@ public class AdminWorkloadView {
                 if (item == null || empty) {
                     setStyle("");
                 } else if (item.getExcessAmount() > 0) {
-                    setStyle("-fx-text-inner-color: #c0392b; -fx-font-weight: bold;"); 
+                    setStyle("-fx-text-inner-color: #c0392b; -fx-font-weight: bold;");
                 } else {
                     setStyle("-fx-text-inner-color: black;");
                 }
@@ -279,7 +281,6 @@ public class AdminWorkloadView {
                 a.setSuggestion("");
             }
         }
-        // AD-004: Sort by overload degree (excess amount descending)
         masterData.sort((a, b) -> Double.compare(b.getExcessAmount(), a.getExcessAmount()));
     }
 
@@ -299,20 +300,18 @@ public class AdminWorkloadView {
     private Parent createStatsTab() {
         VBox root = new VBox(15);
         root.setPadding(new Insets(20));
-        
-        // 标题与顶部按钮区
+
         Label title = new Label("Workload Statistics");
         title.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
 
         HBox headerButtonsBox = new HBox(15);
         headerButtonsBox.setAlignment(Pos.CENTER_LEFT);
-        
+
         Button exportStatsBtn = new Button("Export Statistics CSV");
         exportStatsBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15;");
 
         headerButtonsBox.getChildren().addAll(exportStatsBtn);
 
-        // 白色面板承载区
         VBox whiteCard = new VBox(15);
         whiteCard.setPadding(new Insets(20));
         whiteCard.setStyle("-fx-background-color: white; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);");
@@ -322,7 +321,6 @@ public class AdminWorkloadView {
         tablesBox.setAlignment(Pos.TOP_LEFT);
         VBox.setVgrow(tablesBox, Priority.ALWAYS);
 
-        // Course Stats
         VBox courseBox = new VBox(10);
         Label courseLabel = new Label("By Course");
         courseLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #34495e;");
@@ -336,8 +334,7 @@ public class AdminWorkloadView {
         );
         courseBox.getChildren().add(courseTable);
         HBox.setHgrow(courseBox, Priority.ALWAYS);
-        
-        // Dept Stats
+
         VBox deptBox = new VBox(10);
         Label deptLabel = new Label("By Department");
         deptLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #34495e;");
@@ -352,7 +349,6 @@ public class AdminWorkloadView {
         deptBox.getChildren().add(deptTable);
         HBox.setHgrow(deptBox, Priority.ALWAYS);
 
-        // Compute stats
         Map<String, StatRow> courseStats = new HashMap<>();
         Map<String, StatRow> deptStats = new HashMap<>();
 
@@ -382,14 +378,14 @@ public class AdminWorkloadView {
             if (file != null) {
                 try (java.io.PrintWriter pw = new java.io.PrintWriter(file, "UTF-8")) {
                     pw.println("Category,Name,Total TAs,Total Workload,Avg Workload");
-                    for(StatRow r : courseStats.values()) {
+                    for (StatRow r : courseStats.values()) {
                         pw.println("Course," + r.getName() + "," + r.getTotalTas() + "," + r.getTotalWorkload() + "," + r.getAvgWorkload());
                     }
-                    for(StatRow r : deptStats.values()) {
+                    for (StatRow r : deptStats.values()) {
                         pw.println("Department," + r.getName() + "," + r.getTotalTas() + "," + r.getTotalWorkload() + "," + r.getAvgWorkload());
                     }
                     showAlert("Success", "Export successful!");
-                } catch(Exception ex) {
+                } catch (Exception ex) {
                     showAlert("Error", "Export failed: " + ex.getMessage());
                 }
             }
@@ -403,6 +399,92 @@ public class AdminWorkloadView {
         TableColumn<StatRow, String> col = new TableColumn<>(title);
         col.setCellValueFactory(new PropertyValueFactory<>(property));
         return col;
+    }
+
+    private void runAiAnalysis() {
+        String apiKey = AIWorkloadService.getApiKeyFromEnv();
+        if (apiKey == null || apiKey.isBlank()) {
+            TextInputDialog keyDialog = new TextInputDialog();
+            keyDialog.setTitle("API Key Required");
+            keyDialog.setHeaderText("Enter your  API Key");
+            keyDialog.setContentText("API Key:");
+            Optional<String> result = keyDialog.showAndWait();
+            if (result.isEmpty() || result.get().isBlank()) return;
+            apiKey = result.get().trim();
+        }
+
+        if (masterData.isEmpty()) {
+            showAlert("No Data", "No workload data available to analyze.");
+            return;
+        }
+
+        List<Admin> dataSnapshot = new ArrayList<>(filteredData.isEmpty() ? masterData : filteredData);
+        final String finalApiKey = apiKey;
+
+        Stage loadingStage = new Stage();
+        loadingStage.initModality(Modality.APPLICATION_MODAL);
+        loadingStage.initOwner(stage);
+        loadingStage.setTitle("AI Analysis");
+        ProgressIndicator spinner = new ProgressIndicator();
+        Label loadingLabel = new Label("Analyzing workload with AI...");
+        loadingLabel.setStyle("-fx-font-size: 14px;");
+        VBox loadingBox = new VBox(15, spinner, loadingLabel);
+        loadingBox.setAlignment(Pos.CENTER);
+        loadingBox.setPadding(new Insets(30));
+        loadingStage.setScene(new Scene(loadingBox, 300, 150));
+        loadingStage.show();
+
+        Task<String> task = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                AIWorkloadService aiService = new AIWorkloadService(finalApiKey);
+                return aiService.analyzeWorkload(dataSnapshot, currentThreshold);
+            }
+        };
+
+        task.setOnSucceeded(ev -> {
+            loadingStage.close();
+            showAiResultDialog(task.getValue());
+        });
+
+        task.setOnFailed(ev -> {
+            loadingStage.close();
+            Throwable ex = task.getException();
+            showAlert("AI Analysis Failed", ex.getMessage() != null ? ex.getMessage() : ex.toString());
+        });
+
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void showAiResultDialog(String analysisResult) {
+        Stage resultStage = new Stage();
+        resultStage.initModality(Modality.APPLICATION_MODAL);
+        resultStage.initOwner(stage);
+        resultStage.setTitle("AI Workload Analysis Result");
+
+        Label titleLabel = new Label("AI Workload Analysis");
+        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+
+        TextArea resultArea = new TextArea(analysisResult);
+        resultArea.setWrapText(true);
+        resultArea.setEditable(false);
+        resultArea.setStyle("-fx-font-size: 13px; -fx-font-family: 'Monospaced';");
+        resultArea.setPrefRowCount(20);
+        VBox.setVgrow(resultArea, Priority.ALWAYS);
+
+        Button closeBtn = new Button("Close");
+        closeBtn.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 20;");
+        closeBtn.setOnAction(e -> resultStage.close());
+
+        VBox layout = new VBox(15, titleLabel, resultArea, closeBtn);
+        layout.setPadding(new Insets(20));
+        layout.setAlignment(Pos.TOP_LEFT);
+
+        Scene scene = new Scene(layout, 650, 500);
+        resultStage.setScene(scene);
+        resultStage.show();
     }
 
     private void showAlert(String title, String msg) {
@@ -431,7 +513,7 @@ public class AdminWorkloadView {
         public String getName() { return name; }
         public int getTotalTas() { return taIds.size(); }
         public double getTotalWorkload() { return totalWorkload; }
-        public String getAvgWorkload() { 
+        public String getAvgWorkload() {
             if (taIds.isEmpty()) return "0.00";
             return String.format("%.2f", totalWorkload / taIds.size());
         }
