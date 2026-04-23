@@ -103,24 +103,33 @@ public class AIWorkloadService {
     }
 
     /**
-     * Resolves the DeepSeek API key using two sources in priority order:
+     * Resolves the DeepSeek API key using three sources in priority order:
      *   1. DEEPSEEK_API_KEY environment variable
      *   2. config/api_keys.properties file (property: deepseek.api.key)
-     *
-     * The properties file is gitignored so the key is never committed.
-     * See config/api_keys.properties.example for the template.
+     *   3. config/api_keys.properties.example file (fallback, property: deepseek.api.key)
      */
     public static String getApiKeyFromEnv() {
         String key = System.getenv("DEEPSEEK_API_KEY");
         if (key != null && !key.isBlank()) return key;
 
+        // Try the real properties file first
+        key = readKeyFromFile("config/api_keys.properties");
+        if (key != null) return key;
+
+        // Fall back to the .example file
+        key = readKeyFromFile("config/api_keys.properties.example");
+        if (key != null) return key;
+
+        return null;
+    }
+
+    private static String readKeyFromFile(String path) {
         Properties props = new Properties();
-        try (FileInputStream fis = new FileInputStream("config/api_keys.properties")) {
+        try (FileInputStream fis = new FileInputStream(path)) {
             props.load(fis);
-            key = props.getProperty("deepseek.api.key", "").trim();
+            String key = props.getProperty("deepseek.api.key", "").trim();
             if (!key.isBlank()) return key;
         } catch (IOException ignored) {}
-
         return null;
     }
 }
