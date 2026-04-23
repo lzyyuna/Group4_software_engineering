@@ -6,12 +6,15 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.group4.tarecruitment.model.Admin;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
+import java.util.Properties;
 
 public class AIWorkloadService {
 
@@ -35,13 +38,14 @@ public class AIWorkloadService {
 
         ObjectNode requestBody = objectMapper.createObjectNode();
         requestBody.put("model", MODEL);
-        requestBody.put("max_tokens", 1024);
+        requestBody.put("max_tokens", 600);
 
         ArrayNode messages = requestBody.putArray("messages");
 
         ObjectNode systemMessage = messages.addObject();
         systemMessage.put("role", "system");
-        systemMessage.put("content", "You are a university TA workload analysis assistant.");
+        systemMessage.put("content",
+            "You are a TA workload analyst. Be brief and direct. Use plain text only, no markdown.");
 
         ObjectNode userMessage = messages.addObject();
         userMessage.put("role", "user");
@@ -75,40 +79,48 @@ public class AIWorkloadService {
         double avgWorkload = workloadData.isEmpty() ? 0 : totalWorkload / workloadData.size();
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Analyze the following TA workload data and provide actionable recommendations.\n\n");
+        sb.append("Threshold: ").append(threshold).append("h | TAs: ").append(workloadData.size())
+          .append(" | Overloaded: ").append(overloadedCount)
+          .append(String.format(" | Avg: %.1fh%n%n", avgWorkload));
 
-        sb.append("=== CONFIGURATION ===\n");
-        sb.append("Weekly workload threshold: ").append(threshold).append(" hours\n");
-        sb.append("Total TAs: ").append(workloadData.size()).append("\n");
-        sb.append("Overloaded TAs: ").append(overloadedCount).append("\n");
-        sb.append(String.format("Average workload: %.1f hours%n%n", avgWorkload));
-
-        sb.append("=== TA WORKLOAD DATA ===\n");
         for (Admin a : workloadData) {
-            sb.append("- ").append(a.getTaName())
-              .append(" (").append(a.getTaId()).append(")")
-              .append(" | Course: ").append(a.getCourseName())
-              .append(" | Dept: ").append(a.getDepartment())
-              .append(" | Weekly: ").append(a.getWeeklyWorkload()).append("h")
+            sb.append(a.getTaName())
+              .append(" | ").append(a.getCourseName())
               .append(" | Total: ").append(a.getTotalWorkload()).append("h");
             if (a.getExcessAmount() > 0) {
-                sb.append(String.format(" | OVERLOADED +%.1fh", a.getExcessAmount()));
+                sb.append(String.format(" [OVER +%.1fh]", a.getExcessAmount()));
             }
             sb.append("\n");
         }
 
-        sb.append("\n=== ANALYSIS REQUESTED ===\n");
-        sb.append("Please provide:\n");
-        sb.append("1. Overall Assessment: Is the workload distribution healthy?\n");
-        sb.append("2. At-Risk TAs: List TAs at risk of burnout with specific concerns.\n");
-        sb.append("3. Recommendations: Concrete steps for workload redistribution.\n");
-        sb.append("4. Verdict: ACCEPTABLE / NEEDS ATTENTION / CRITICAL\n\n");
-        sb.append("Keep the response clear and concise. Use plain text without markdown.");
+        sb.append("\nReply using EXACTLY this format (plain text, no markdown):\n");
+        sb.append("ASSESSMENT: [1-2 sentences on overall distribution health]\n");
+        sb.append("AT-RISK:\n- [TA name: brief reason] (list up to 3)\n");
+        sb.append("ACTIONS:\n- [concrete step] (list up to 3 steps)\n");
+        sb.append("VERDICT: [ACCEPTABLE / NEEDS ATTENTION / CRITICAL]");
 
         return sb.toString();
     }
 
+    /**
+     * Resolves the DeepSeek API key using two sources in priority order:
+     *   1. DEEPSEEK_API_KEY environment variable
+     *   2. config/api_keys.properties file (property: deepseek.api.key)
+     *
+     * The properties file is gitignored so the key is never committed.
+     * See config/api_keys.properties.example for the template.
+     */
     public static String getApiKeyFromEnv() {
-        return System.getenv("DEEPSEEK_API_KEY");
+        String key = System.getenv("DEEPSEEK_API_KEY");
+        if (key != null && !key.isBlank()) return key;
+
+        Properties props = new Properties();
+        try (FileInputStream fis = new FileInputStream("config/api_keys.properties")) {
+            props.load(fis);
+            key = props.getProperty("deepseek.api.key", "").trim();
+            if (!key.isBlank()) return key;
+        } catch (IOException ignored) {}
+
+        return null;
     }
 }

@@ -14,9 +14,11 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -406,7 +408,12 @@ public class AdminWorkloadView {
         if (apiKey == null || apiKey.isBlank()) {
             TextInputDialog keyDialog = new TextInputDialog();
             keyDialog.setTitle("API Key Required");
-            keyDialog.setHeaderText("Enter your  API Key");
+            keyDialog.setHeaderText(
+                "DeepSeek API Key not found.\n\n" +
+                "To skip this dialog permanently, create:\n" +
+                "  config/api_keys.properties\n" +
+                "and add:  deepseek.api.key=sk-...\n\n" +
+                "Or set environment variable: DEEPSEEK_API_KEY");
             keyDialog.setContentText("API Key:");
             Optional<String> result = keyDialog.showAndWait();
             if (result.isEmpty() || result.get().isBlank()) return;
@@ -462,29 +469,160 @@ public class AdminWorkloadView {
         Stage resultStage = new Stage();
         resultStage.initModality(Modality.APPLICATION_MODAL);
         resultStage.initOwner(stage);
-        resultStage.setTitle("AI Workload Analysis Result");
+        resultStage.setTitle("AI Workload Analysis");
 
-        Label titleLabel = new Label("AI Workload Analysis");
-        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+        // ── Header bar ──────────────────────────────────────────────────────────
+        HBox header = new HBox(10);
+        header.setPadding(new Insets(16, 20, 16, 20));
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setStyle("-fx-background-color: #1a237e;");
+        Label headerTitle = new Label("AI Workload Analysis");
+        headerTitle.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: white;");
+        header.getChildren().add(headerTitle);
 
-        TextArea resultArea = new TextArea(analysisResult);
-        resultArea.setWrapText(true);
-        resultArea.setEditable(false);
-        resultArea.setStyle("-fx-font-size: 13px; -fx-font-family: 'Monospaced';");
-        resultArea.setPrefRowCount(20);
-        VBox.setVgrow(resultArea, Priority.ALWAYS);
+        // ── Parse sections from the structured response ──────────────────────
+        Map<String, String> sections = parseSections(analysisResult);
+
+        // ── Verdict badge ────────────────────────────────────────────────────
+        String verdictRaw = sections.getOrDefault("VERDICT", "").toUpperCase();
+        String verdictText;
+        String verdictBg;
+        String verdictFg;
+        if (verdictRaw.contains("CRITICAL")) {
+            verdictText = "CRITICAL";  verdictBg = "#fdecea"; verdictFg = "#c62828";
+        } else if (verdictRaw.contains("NEEDS ATTENTION")) {
+            verdictText = "NEEDS ATTENTION"; verdictBg = "#fff8e1"; verdictFg = "#e65100";
+        } else if (verdictRaw.contains("ACCEPTABLE")) {
+            verdictText = "ACCEPTABLE"; verdictBg = "#e8f5e9"; verdictFg = "#2e7d32";
+        } else {
+            verdictText = verdictRaw.isEmpty() ? "" : verdictRaw;
+            verdictBg = "#f5f5f5"; verdictFg = "#37474f";
+        }
+
+        VBox verdictBanner = new VBox();
+        if (!verdictText.isEmpty()) {
+            Label verdictLabel = new Label("Verdict: " + verdictText);
+            verdictLabel.setStyle(String.format(
+                "-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: %s;" +
+                "-fx-background-color: %s; -fx-padding: 8 16; -fx-background-radius: 4;",
+                verdictFg, verdictBg));
+            HBox bannerRow = new HBox(verdictLabel);
+            bannerRow.setPadding(new Insets(10, 16, 6, 16));
+            bannerRow.setStyle("-fx-background-color: #f5f6fa;");
+            verdictBanner.getChildren().add(bannerRow);
+        }
+
+        // ── Section cards ────────────────────────────────────────────────────
+        String[][] sectionDefs = {
+            {"ASSESSMENT", "Overall Assessment", "#1565c0"},
+            {"AT-RISK",    "At-Risk TAs",        "#b71c1c"},
+            {"ACTIONS",    "Recommended Actions", "#1b5e20"},
+        };
+
+        VBox cardsBox = new VBox(12);
+        cardsBox.setPadding(new Insets(12, 16, 12, 16));
+        cardsBox.setStyle("-fx-background-color: #f5f6fa;");
+
+        boolean anySectionFound = false;
+        for (String[] def : sectionDefs) {
+            String content = sections.get(def[0]);
+            if (content == null || content.isBlank()) continue;
+            anySectionFound = true;
+            cardsBox.getChildren().add(buildSectionCard(def[1], content, def[2]));
+        }
+
+        // Fall back: if no sections were parsed, show raw text in a single card
+        if (!anySectionFound) {
+            cardsBox.getChildren().add(buildSectionCard("Analysis", analysisResult, "#37474f"));
+        }
+
+        ScrollPane scrollPane = new ScrollPane(cardsBox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background-color: #f5f6fa; -fx-background: #f5f6fa;");
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+
+        // ── Footer buttons ───────────────────────────────────────────────────
+        HBox footer = new HBox(10);
+        footer.setPadding(new Insets(10, 16, 10, 16));
+        footer.setAlignment(Pos.CENTER_RIGHT);
+        footer.setStyle("-fx-background-color: #eceff1; -fx-border-color: #cfd8dc; -fx-border-width: 1 0 0 0;");
+
+        Button copyBtn = new Button("Copy to Clipboard");
+        copyBtn.setStyle("-fx-background-color: #1565c0; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 7 14;");
+        copyBtn.setOnAction(e -> {
+            Clipboard cb = Clipboard.getSystemClipboard();
+            ClipboardContent cc = new ClipboardContent();
+            cc.putString(analysisResult);
+            cb.setContent(cc);
+            copyBtn.setText("Copied!");
+        });
 
         Button closeBtn = new Button("Close");
-        closeBtn.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 20;");
+        closeBtn.setStyle("-fx-background-color: #546e7a; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 7 20;");
         closeBtn.setOnAction(e -> resultStage.close());
+        footer.getChildren().addAll(copyBtn, closeBtn);
 
-        VBox layout = new VBox(15, titleLabel, resultArea, closeBtn);
-        layout.setPadding(new Insets(20));
-        layout.setAlignment(Pos.TOP_LEFT);
+        // ── Assemble layout ──────────────────────────────────────────────────
+        VBox root = new VBox(header, verdictBanner, scrollPane, footer);
+        root.setStyle("-fx-background-color: #f5f6fa;");
 
-        Scene scene = new Scene(layout, 650, 500);
+        Scene scene = new Scene(root, 680, 560);
         resultStage.setScene(scene);
+        resultStage.setMinWidth(480);
+        resultStage.setMinHeight(360);
         resultStage.show();
+    }
+
+    /** Builds a card with a colored left-border strip, a bold title, and body text. */
+    private VBox buildSectionCard(String title, String body, String accentColor) {
+        HBox card = new HBox();
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 6;" +
+                      "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.07), 6, 0, 0, 2);");
+
+        // Colored left strip
+        Rectangle strip = new Rectangle(5, 1);
+        strip.setFill(Color.web(accentColor));
+        strip.heightProperty().bind(card.heightProperty());
+        StackPane stripPane = new StackPane(strip);
+        stripPane.setStyle("-fx-background-color: " + accentColor + "; -fx-background-radius: 6 0 0 6;");
+        stripPane.setPrefWidth(5);
+        stripPane.setMinWidth(5);
+
+        VBox content = new VBox(6);
+        content.setPadding(new Insets(12, 14, 12, 14));
+        HBox.setHgrow(content, Priority.ALWAYS);
+
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: " + accentColor + ";");
+
+        Separator sep = new Separator();
+
+        Label bodyLabel = new Label(body);
+        bodyLabel.setWrapText(true);
+        bodyLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #263238; -fx-line-spacing: 2;");
+
+        content.getChildren().addAll(titleLabel, sep, bodyLabel);
+        card.getChildren().addAll(stripPane, content);
+        return new VBox(card); // wrap in VBox so margins apply properly
+    }
+
+    /** Parses the structured AI response into a key→content map. */
+    private Map<String, String> parseSections(String text) {
+        Map<String, String> result = new LinkedHashMap<>();
+        String[] keys = {"ASSESSMENT", "AT-RISK", "ACTIONS", "VERDICT"};
+        for (String key : keys) {
+            int start = text.indexOf(key + ":");
+            if (start == -1) continue;
+            start += key.length() + 1;
+            int end = text.length();
+            for (String other : keys) {
+                if (other.equals(key)) continue;
+                int idx = text.indexOf(other + ":", start);
+                if (idx != -1 && idx < end) end = idx;
+            }
+            result.put(key, text.substring(start, end).trim());
+        }
+        return result;
     }
 
     private void showAlert(String title, String msg) {
