@@ -406,18 +406,12 @@ public class AdminWorkloadView {
     private void runAiAnalysis() {
         String apiKey = AIWorkloadService.getApiKeyFromEnv();
         if (apiKey == null || apiKey.isBlank()) {
-            TextInputDialog keyDialog = new TextInputDialog();
-            keyDialog.setTitle("API Key Required");
-            keyDialog.setHeaderText(
+            showAlert("API Key Missing",
                 "DeepSeek API Key not found.\n\n" +
-                "To skip this dialog permanently, create:\n" +
-                "  config/api_keys.properties\n" +
-                "and add:  deepseek.api.key=sk-...\n\n" +
+                "Please add it to: config/api_keys.properties\n" +
+                "with the line: deepseek.api.key=sk-...\n\n" +
                 "Or set environment variable: DEEPSEEK_API_KEY");
-            keyDialog.setContentText("API Key:");
-            Optional<String> result = keyDialog.showAndWait();
-            if (result.isEmpty() || result.get().isBlank()) return;
-            apiKey = result.get().trim();
+            return;
         }
 
         if (masterData.isEmpty()) {
