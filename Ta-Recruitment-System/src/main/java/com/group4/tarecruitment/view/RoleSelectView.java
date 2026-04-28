@@ -189,6 +189,12 @@ public class RoleSelectView {
             return;
         }
 
+        if (!role.equals("TA")) {
+            messageLabel.setStyle("-fx-text-fill: #d64545;");
+            messageLabel.setText("Only TA accounts can be self-registered. MO and Admin accounts must be created by an administrator.");
+            return;
+        }
+
         if (!password.matches("^[A-Za-z0-9]{6,}$")) {
             messageLabel.setStyle("-fx-text-fill: #d64545;");
             messageLabel.setText("Password must be at least 6 characters and contain only letters or digits.");
