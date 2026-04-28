@@ -1,8 +1,10 @@
 package com.group4.tarecruitment.view;
 
+import com.group4.tarecruitment.model.InviteCode;
 import com.group4.tarecruitment.model.User;
 import com.group4.tarecruitment.service.AdminService;
 import com.group4.tarecruitment.service.AdminServiceImpl;
+import com.group4.tarecruitment.service.InviteCodeService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -10,6 +12,8 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -20,8 +24,10 @@ import java.util.List;
 public class AdminUserView {
 
     private final AdminService adminService = new AdminServiceImpl();
+    private final InviteCodeService inviteCodeService = new InviteCodeService();
     private final Runnable onBack;
     private final ObservableList<User> userData = FXCollections.observableArrayList();
+    private final ObservableList<InviteCode> inviteData = FXCollections.observableArrayList();
 
     public AdminUserView(Stage stage, Runnable onBack) {
         this.onBack = onBack;
@@ -32,29 +38,30 @@ public class AdminUserView {
         root.setPadding(new Insets(30));
         root.setStyle("-fx-background-color: #f5f6fa;");
 
-        // 1. Header Area
+        // Header
         HBox header = new HBox();
         header.setAlignment(Pos.CENTER_LEFT);
         Label title = new Label("User Management");
         title.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
-        
-        // Spacer
+
         HBox spacer = new HBox();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        
+
         Button backBtn = new Button("Back to Dashboard");
         backBtn.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15;");
         backBtn.setOnAction(e -> onBack.run());
-        
+
         header.getChildren().addAll(title, spacer, backBtn);
 
-        // 2. White Card with Search & Table
-        VBox mainCard = new VBox(15);
-        mainCard.setPadding(new Insets(20));
-        mainCard.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 5);");
-        VBox.setVgrow(mainCard, Priority.ALWAYS);
+        // ── User List Card ──────────────────────────────────────────────────
+        VBox userCard = new VBox(15);
+        userCard.setPadding(new Insets(20));
+        userCard.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 5);");
+        VBox.setVgrow(userCard, Priority.ALWAYS);
 
-        // Search Controls
+        Label userCardTitle = new Label("Registered Users");
+        userCardTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+
         HBox controls = new HBox(15);
         controls.setAlignment(Pos.CENTER_LEFT);
 
@@ -69,9 +76,8 @@ public class AdminUserView {
 
         controls.getChildren().addAll(new Label("Filter users:"), searchField, roleFilter);
 
-        // Table
         TableView<User> userTable = new TableView<>();
-        
+
         TableColumn<User, String> userCol = new TableColumn<>("Username");
         userCol.setCellValueFactory(new PropertyValueFactory<>("username"));
         userCol.setPrefWidth(250);
@@ -83,41 +89,104 @@ public class AdminUserView {
         userTable.getColumns().addAll(userCol, roleCol);
         VBox.setVgrow(userTable, Priority.ALWAYS);
 
-        // Wrap in FilteredList
-        javafx.collections.transformation.FilteredList<User> filteredData = new javafx.collections.transformation.FilteredList<>(userData, p -> true);
+        javafx.collections.transformation.FilteredList<User> filteredData =
+                new javafx.collections.transformation.FilteredList<>(userData, p -> true);
 
-        // Bind Predicate to controls
-        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
-            updatePredicate(filteredData, newValue, roleFilter.getValue());
-        });
-        roleFilter.valueProperty().addListener((observable, oldValue, newValue) -> {
-            updatePredicate(filteredData, searchField.getText(), newValue);
-        });
+        searchField.textProperty().addListener((obs, o, n) ->
+                updatePredicate(filteredData, n, roleFilter.getValue()));
+        roleFilter.valueProperty().addListener((obs, o, n) ->
+                updatePredicate(filteredData, searchField.getText(), n));
 
-        // Wrap in SortedList to allow sorting
-        javafx.collections.transformation.SortedList<User> sortedData = new javafx.collections.transformation.SortedList<>(filteredData);
+        javafx.collections.transformation.SortedList<User> sortedData =
+                new javafx.collections.transformation.SortedList<>(filteredData);
         sortedData.comparatorProperty().bind(userTable.comparatorProperty());
         userTable.setItems(sortedData);
 
-        mainCard.getChildren().addAll(controls, userTable);
+        userCard.getChildren().addAll(userCardTitle, controls, userTable);
 
-        root.getChildren().addAll(header, mainCard);
+        // ── Invite Code Card ────────────────────────────────────────────────
+        VBox inviteCard = new VBox(15);
+        inviteCard.setPadding(new Insets(20));
+        inviteCard.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 5);");
+
+        Label inviteCardTitle = new Label("Invite Code Management");
+        inviteCardTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+
+        // Generate section
+        HBox generateRow = new HBox(12);
+        generateRow.setAlignment(Pos.CENTER_LEFT);
+
+        ComboBox<String> roleSelector = new ComboBox<>();
+        roleSelector.getItems().addAll("TA", "MO");
+        roleSelector.setValue("TA");
+        roleSelector.setPrefWidth(100);
+
+        Button generateBtn = new Button("Generate Invite Code");
+        generateBtn.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 6 14;");
+
+        Label generatedCodeLabel = new Label();
+        generatedCodeLabel.setStyle("-fx-font-family: monospace; -fx-font-size: 14px; -fx-text-fill: #2c3e50;");
+
+        Button copyBtn = new Button("Copy");
+        copyBtn.setVisible(false);
+        copyBtn.setStyle("-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-padding: 4 10;");
+
+        generateBtn.setOnAction(e -> {
+            String role = roleSelector.getValue();
+            String code = inviteCodeService.generateCode(role);
+            generatedCodeLabel.setText("New code: " + code);
+            copyBtn.setVisible(true);
+            copyBtn.setOnAction(ev -> {
+                ClipboardContent content = new ClipboardContent();
+                content.putString(code);
+                Clipboard.getSystemClipboard().setContent(content);
+            });
+            refreshInviteCodes();
+        });
+
+        generateRow.getChildren().addAll(
+                new Label("Role:"), roleSelector, generateBtn, generatedCodeLabel, copyBtn);
+
+        // Invite code table
+        TableView<InviteCode> inviteTable = new TableView<>();
+        inviteTable.setPrefHeight(200);
+
+        TableColumn<InviteCode, String> codeCol = new TableColumn<>("Code");
+        codeCol.setCellValueFactory(new PropertyValueFactory<>("code"));
+        codeCol.setPrefWidth(160);
+
+        TableColumn<InviteCode, String> inviteRoleCol = new TableColumn<>("Role");
+        inviteRoleCol.setCellValueFactory(new PropertyValueFactory<>("role"));
+        inviteRoleCol.setPrefWidth(80);
+
+        TableColumn<InviteCode, Boolean> usedCol = new TableColumn<>("Used");
+        usedCol.setCellValueFactory(new PropertyValueFactory<>("used"));
+        usedCol.setPrefWidth(70);
+
+        TableColumn<InviteCode, String> dateCol = new TableColumn<>("Created");
+        dateCol.setCellValueFactory(new PropertyValueFactory<>("createdAt"));
+        dateCol.setPrefWidth(120);
+
+        inviteTable.getColumns().addAll(codeCol, inviteRoleCol, usedCol, dateCol);
+        inviteTable.setItems(inviteData);
+
+        inviteCard.getChildren().addAll(inviteCardTitle, generateRow, inviteTable);
+
+        root.getChildren().addAll(header, userCard, inviteCard);
 
         loadUsers();
+        refreshInviteCodes();
 
         return root;
     }
 
-    private void updatePredicate(javafx.collections.transformation.FilteredList<User> filteredList, String username, String role) {
+    private void updatePredicate(javafx.collections.transformation.FilteredList<User> filteredList,
+                                  String username, String role) {
         filteredList.setPredicate(user -> {
-            // Check username match
-            boolean matchesName = (username == null || username.isEmpty()) || 
+            boolean matchesName = (username == null || username.isEmpty()) ||
                                   user.getUsername().toLowerCase().contains(username.toLowerCase());
-            
-            // Check role match
             boolean matchesRole = (role == null || role.equals("All Roles")) ||
                                   user.getRole().equalsIgnoreCase(role);
-            
             return matchesName && matchesRole;
         });
     }
@@ -128,11 +197,19 @@ public class AdminUserView {
             userData.setAll(users);
         } catch (Exception e) {
             e.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText(null);
-            alert.setContentText("Failed to load user data from user.csv.");
-            alert.showAndWait();
+            showError("Failed to load user data from user.csv.");
         }
+    }
+
+    private void refreshInviteCodes() {
+        inviteData.setAll(inviteCodeService.getAllCodes());
+    }
+
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

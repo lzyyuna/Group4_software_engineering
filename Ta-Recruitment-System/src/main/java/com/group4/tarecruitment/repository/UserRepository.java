@@ -60,7 +60,7 @@ public class UserRepository {
             return false;
         }
 
-        if (!role.equals("TA")) {
+        if (!"TA".equals(role) && !"MO".equals(role)) {
             return false;
         }
 
