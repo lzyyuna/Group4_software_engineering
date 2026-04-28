@@ -64,6 +64,27 @@ public class RoleSelectView {
         passwordField.getStyleClass().add("login-input");
         passwordField.setMaxWidth(Double.MAX_VALUE);
 
+        Label inviteLabel = new Label("Invite Code");
+        inviteLabel.getStyleClass().add("login-label");
+        TextField inviteField = new TextField();
+        inviteField.setPromptText("Enter invite code");
+        inviteField.getStyleClass().add("login-input");
+        inviteField.setMaxWidth(Double.MAX_VALUE);
+
+        // Show invite code field only for TA and MO
+        inviteLabel.setVisible(true);
+        inviteLabel.setManaged(true);
+        inviteField.setVisible(true);
+        inviteField.setManaged(true);
+
+        roleBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            boolean needsCode = "TA".equals(newVal) || "MO".equals(newVal);
+            inviteLabel.setVisible(needsCode);
+            inviteLabel.setManaged(needsCode);
+            inviteField.setVisible(needsCode);
+            inviteField.setManaged(needsCode);
+        });
+
         Label messageLabel = new Label();
         messageLabel.getStyleClass().addAll("status-label", "login-link");
         messageLabel.setWrapText(true);
@@ -82,7 +103,7 @@ public class RoleSelectView {
         hintLink.setFocusTraversable(false);
 
         loginBtn.setOnAction(e -> handleLogin(usernameField, passwordField, messageLabel, roleBox.getValue()));
-        registerBtn.setOnAction(e -> handleRegister(usernameField, passwordField, messageLabel, roleBox.getValue()));
+        registerBtn.setOnAction(e -> handleRegister(usernameField, passwordField, inviteField, messageLabel, roleBox.getValue()));
         passwordField.setOnAction(e -> handleLogin(usernameField, passwordField, messageLabel, roleBox.getValue()));
 
         HBox buttonRow = new HBox(12, loginBtn, registerBtn);
@@ -94,6 +115,7 @@ public class RoleSelectView {
                 roleLabel, roleBox,
                 usernameLabel, usernameField,
                 passwordLabel, passwordField,
+                inviteLabel, inviteField,
                 buttonRow,
                 messageLabel,
                 hintLink
@@ -174,7 +196,8 @@ public class RoleSelectView {
         }
     }
 
-    private void handleRegister(TextField usernameField, PasswordField passwordField, Label messageLabel, String role) {
+    private void handleRegister(TextField usernameField, PasswordField passwordField,
+                                TextField inviteField, Label messageLabel, String role) {
         String username = usernameField.getText().trim();
         String password = passwordField.getText().trim();
 
@@ -183,6 +206,13 @@ public class RoleSelectView {
             messageLabel.setText("Please select a role before registering.");
             return;
         }
+
+        if ("Admin".equals(role)) {
+            messageLabel.setStyle("-fx-text-fill: #d64545;");
+            messageLabel.setText("Admin accounts cannot be self-registered. Contact a system administrator.");
+            return;
+        }
+
         if (username.isEmpty() || password.isEmpty()) {
             messageLabel.setStyle("-fx-text-fill: #d64545;");
             messageLabel.setText("Username and password cannot be empty.");
@@ -195,13 +225,20 @@ public class RoleSelectView {
             return;
         }
 
-        boolean success = authService.register(username, password, role);
+        String inviteCode = inviteField.getText().trim();
+        if (inviteCode.isEmpty()) {
+            messageLabel.setStyle("-fx-text-fill: #d64545;");
+            messageLabel.setText("An invite code is required to register as " + role + ".");
+            return;
+        }
+
+        boolean success = authService.register(username, password, role, inviteCode);
         if (success) {
             messageLabel.setStyle("-fx-text-fill: #2d8a52;");
             messageLabel.setText("Registration successful. You can now log in as " + role + ".");
         } else {
             messageLabel.setStyle("-fx-text-fill: #d64545;");
-            messageLabel.setText("Registration failed: username already exists or input is invalid.");
+            messageLabel.setText("Registration failed: invalid or already-used invite code, or username already exists.");
         }
     }
 }

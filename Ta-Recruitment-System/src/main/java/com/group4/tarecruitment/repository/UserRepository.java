@@ -60,6 +60,10 @@ public class UserRepository {
             return false;
         }
 
+        if (!"TA".equals(role) && !"MO".equals(role)) {
+            return false;
+        }
+
         if (existsByUsername(username)) {
             return false;
         }
