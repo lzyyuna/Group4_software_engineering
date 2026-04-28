@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.group4.tarecruitment.service.AdminServiceTest$AdminModelTests
--------------------------------------------------------------------------------
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.727 s -- in com.group4.tarecruitment.service.AdminServiceTest$AdminModelTests
