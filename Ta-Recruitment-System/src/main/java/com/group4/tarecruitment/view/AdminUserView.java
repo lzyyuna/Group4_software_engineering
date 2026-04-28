@@ -77,14 +77,15 @@ public class AdminUserView {
         controls.getChildren().addAll(new Label("Filter users:"), searchField, roleFilter);
 
         TableView<User> userTable = new TableView<>();
+        userTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         TableColumn<User, String> userCol = new TableColumn<>("Username");
         userCol.setCellValueFactory(new PropertyValueFactory<>("username"));
-        userCol.setPrefWidth(250);
+        userCol.setMaxWidth(1f * Integer.MAX_VALUE * 60);
 
         TableColumn<User, String> roleCol = new TableColumn<>("Role");
         roleCol.setCellValueFactory(new PropertyValueFactory<>("role"));
-        roleCol.setPrefWidth(200);
+        roleCol.setMaxWidth(1f * Integer.MAX_VALUE * 40);
 
         userTable.getColumns().addAll(userCol, roleCol);
         VBox.setVgrow(userTable, Priority.ALWAYS);
@@ -108,6 +109,7 @@ public class AdminUserView {
         VBox inviteCard = new VBox(15);
         inviteCard.setPadding(new Insets(20));
         inviteCard.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 5);");
+        VBox.setVgrow(inviteCard, Priority.ALWAYS);
 
         Label inviteCardTitle = new Label("Invite Code Management");
         inviteCardTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
@@ -149,23 +151,24 @@ public class AdminUserView {
 
         // Invite code table
         TableView<InviteCode> inviteTable = new TableView<>();
-        inviteTable.setPrefHeight(200);
+        inviteTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        VBox.setVgrow(inviteTable, Priority.ALWAYS);
 
         TableColumn<InviteCode, String> codeCol = new TableColumn<>("Code");
         codeCol.setCellValueFactory(new PropertyValueFactory<>("code"));
-        codeCol.setPrefWidth(160);
+        codeCol.setMaxWidth(1f * Integer.MAX_VALUE * 35);
 
         TableColumn<InviteCode, String> inviteRoleCol = new TableColumn<>("Role");
         inviteRoleCol.setCellValueFactory(new PropertyValueFactory<>("role"));
-        inviteRoleCol.setPrefWidth(80);
+        inviteRoleCol.setMaxWidth(1f * Integer.MAX_VALUE * 15);
 
         TableColumn<InviteCode, Boolean> usedCol = new TableColumn<>("Used");
         usedCol.setCellValueFactory(new PropertyValueFactory<>("used"));
-        usedCol.setPrefWidth(70);
+        usedCol.setMaxWidth(1f * Integer.MAX_VALUE * 15);
 
         TableColumn<InviteCode, String> dateCol = new TableColumn<>("Created");
         dateCol.setCellValueFactory(new PropertyValueFactory<>("createdAt"));
-        dateCol.setPrefWidth(120);
+        dateCol.setMaxWidth(1f * Integer.MAX_VALUE * 35);
 
         inviteTable.getColumns().addAll(codeCol, inviteRoleCol, usedCol, dateCol);
         inviteTable.setItems(inviteData);
