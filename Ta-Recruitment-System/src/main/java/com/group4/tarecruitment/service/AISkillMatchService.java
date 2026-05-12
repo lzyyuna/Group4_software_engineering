@@ -8,11 +8,14 @@ import com.group4.tarecruitment.model.Applicant;
 import com.group4.tarecruitment.model.Job;
 import com.group4.tarecruitment.model.SkillMatchResult;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Properties;
 
 public class AISkillMatchService {
 
@@ -45,7 +48,7 @@ public class AISkillMatchService {
         systemMessage.put("content",
                 "You are a university TA skill-matching assistant. " +
                         "You must explain the fit between an applicant and a TA job based only on the structured data provided. " +
-                        "Do not invent any skills or experiences. Use plain English without markdown.");
+                        "Do not invent any skills or experiences. Use plain English only.");
 
         ObjectNode userMessage = messages.addObject();
         userMessage.put("role", "user");
@@ -98,11 +101,15 @@ public class AISkillMatchService {
         sb.append("Missing Skills: ").append(result.getMissingSkills()).append("\n\n");
 
         sb.append("=== TASK ===\n");
-        sb.append("Write a short explanation in 3 parts:\n");
-        sb.append("1. Why the applicant is or is not a good fit.\n");
-        sb.append("2. Which skills already match.\n");
-        sb.append("3. Which skills are missing and whether the applicant should apply.\n");
-        sb.append("Keep it concise.");
+        sb.append("Reply using EXACTLY this format (plain text, no markdown):\n");
+        sb.append("OVERALL FIT: [1-2 sentences explaining the overall fit]\n");
+        sb.append("MATCHED STRENGTHS:\n");
+        sb.append("- [matched strength based only on provided data]\n");
+        sb.append("- [matched strength based only on provided data]\n");
+        sb.append("MISSING SKILLS:\n");
+        sb.append("- [missing skill or improvement point; write \"None identified\" if there are no missing skills]\n");
+        sb.append("RECOMMENDATION: [1-2 sentences on whether the applicant should apply and why]\n");
+        sb.append("Keep the response concise.");
 
         return sb.toString();
     }
@@ -112,6 +119,26 @@ public class AISkillMatchService {
     }
 
     public static String getApiKeyFromEnv() {
-        return System.getenv("DEEPSEEK_API_KEY");
+        String key = System.getenv("DEEPSEEK_API_KEY");
+        if (key != null && !key.isBlank()) return key;
+
+        key = readKeyFromFile("config/api_keys.properties");
+        if (key != null) return key;
+
+        key = readKeyFromFile("config/api_keys.properties.example");
+        if (key != null) return key;
+
+        return null;
+    }
+
+    private static String readKeyFromFile(String path) {
+        Properties props = new Properties();
+        try (FileInputStream fis = new FileInputStream(path)) {
+            props.load(fis);
+            String key = props.getProperty("deepseek.api.key", "").trim();
+            if (!key.isBlank()) return key;
+        } catch (IOException ignored) {
+        }
+        return null;
     }
 }
