@@ -69,4 +69,9 @@ public class Job {
     public void setDeadline(String deadline) { this.deadline = deadline; }
     public String getDepartment() { return department; }
     public void setDepartment(String department) { this.department = department; }
+
+    @Override
+    public String toString() {
+        return courseName + " (" + positionType + ") - " + jobId;
+    }
 }
