@@ -1,0 +1,9 @@
+# DeepSeek API Key Configuration
+# ================================
+# 1. Copy this file to: config/api_keys.properties
+# 2. Replace the placeholder below with your actual key
+# 3. The real file is gitignored and will NOT be committed
+#
+# Get your key at: https://platform.deepseek.com/api_keys
+
+deepseek.api.key=sk-your-key-here

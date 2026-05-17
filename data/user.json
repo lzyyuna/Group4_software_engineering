@@ -1,0 +1,167 @@
+[
+  {
+    "username": "mo",
+    "password": "123456",
+    "role": "MO"
+  },
+  {
+    "username": "a",
+    "password": "1",
+    "role": "Admin"
+  },
+  {
+    "username": "li",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "lijing",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "hm",
+    "password": "111111",
+    "role": "MO"
+  },
+  {
+    "username": "yn",
+    "password": "111111",
+    "role": "TA"
+  },
+  {
+    "username": "huang",
+    "password": "123456",
+    "role": "MO"
+  },
+  {
+    "username": "jing",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "zhi",
+    "password": "123456",
+    "role": "Admin"
+  },
+  {
+    "username": "yu",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "yi",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "ZHIGG",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "w1",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "y1",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "admin1",
+    "password": "123456",
+    "role": "Admin"
+  },
+  {
+    "username": "admin",
+    "password": "123456",
+    "role": "Admin"
+  },
+  {
+    "username": "ta1",
+    "password": "333333",
+    "role": "TA"
+  },
+  {
+    "username": "MO",
+    "password": "333333",
+    "role": "MO"
+  },
+  {
+    "username": "Admin 001",
+    "password": "123456",
+    "role": "Admin"
+  },
+  {
+    "username": "admin001",
+    "password": "123456",
+    "role": "Admin"
+  },
+  {
+    "username": "TA1",
+    "password": "111111",
+    "role": "TA"
+  },
+  {
+    "username": "TA001",
+    "password": "111111",
+    "role": "TA"
+  },
+  {
+    "username": "yi2",
+    "password": "123456",
+    "role": "Admin"
+  },
+  {
+    "username": "jing1",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "yuii",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "yuiii",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "yuiiii",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "yytiu",
+    "password": "123456",
+    "role": "MO"
+  },
+  {
+    "username": "yyti",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "yiu",
+    "password": "123456",
+    "role": "Admin"
+  },
+  {
+    "username": "huhg",
+    "password": "123456",
+    "role": "TA"
+  },
+  {
+    "username": "165",
+    "password": "12343565564",
+    "role": "TA"
+  },
+  {
+    "username": "1",
+    "password": "123456",
+    "role": "TA"
+  }
+]

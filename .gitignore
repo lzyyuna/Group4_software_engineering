@@ -1,0 +1,22 @@
+# Compiled class files
+*.class
+
+# Target directory
+/target/
+
+# IDE files
+.settings/
+.project
+.classpath
+.idea/
+*.iml
+
+# API Keys and sensitive configuration
+config/api_keys.properties
+
+# Environment variables
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
