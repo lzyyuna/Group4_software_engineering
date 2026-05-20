@@ -1,10 +1,24 @@
 package com.group4.tarecruitment.view;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.group4.tarecruitment.model.Admin;
 import com.group4.tarecruitment.service.AIWorkloadService;
 import com.group4.tarecruitment.service.AdminService;
 import com.group4.tarecruitment.service.AdminServiceImpl;
 import com.group4.tarecruitment.util.ThemeManager;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -13,38 +27,66 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.*;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.util.*;
-import java.util.stream.Collectors;
-
+/**
+ * TA Workload Management View for Admin
+ * Provides UI for viewing, filtering, analyzing, and exporting TA workload data.
+ * Includes workload table, statistics, threshold settings, and AI-powered analysis.
+ */
 public class AdminWorkloadView {
 
+    // Main application stage
     private final Stage stage;
+    // Service for admin workload operations
     private final AdminService adminService = new AdminServiceImpl();
+    // Full dataset loaded from CSV
     private ObservableList<Admin> masterData = FXCollections.observableArrayList();
+    // Filtered dataset displayed in table
     private ObservableList<Admin> filteredData = FXCollections.observableArrayList();
+    // Main table showing workload records
     private TableView<Admin> workloadTable;
 
+    // Workload threshold for warning calculation
     private double currentThreshold = 10.0;
+    // Callback to return to dashboard
     private final Runnable onBack;
 
+    /**
+     * Constructor with stage and back navigation callback
+     * @param stage Main application stage
+     * @param onBack Runnable to navigate back
+     */
     public AdminWorkloadView(Stage stage, Runnable onBack) {
         this.stage = stage;
         this.onBack = onBack;
         loadThreshold();
     }
 
+    /**
+     * Loads saved workload threshold from properties file
+     * Uses default value (10.0) if file not found or invalid
+     */
     private void loadThreshold() {
         Properties props = new Properties();
         try (FileInputStream fis = new FileInputStream("data/admin_settings.properties")) {
@@ -55,6 +97,10 @@ public class AdminWorkloadView {
         }
     }
 
+    /**
+     * Saves current workload threshold to properties file
+     * Creates data directory if it does not exist
+     */
     private void saveThreshold() {
         Properties props = new Properties();
         props.setProperty("threshold", String.valueOf(currentThreshold));
@@ -67,6 +113,10 @@ public class AdminWorkloadView {
         }
     }
 
+    /**
+     * Creates main layout with tab pane (Workload + Statistics)
+     * @return Root parent node of the view
+     */
     public Parent createContent() {
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
@@ -84,6 +134,10 @@ public class AdminWorkloadView {
         return root;
     }
 
+    /**
+     * Creates the main workload management tab UI
+     * @return Parent node for workload tab
+     */
     private Parent createWorkloadTab() {
         VBox root = new VBox(16);
         root.setPadding(new Insets(24));
@@ -92,6 +146,7 @@ public class AdminWorkloadView {
         Label mainTitle = new Label("TA Workload Overview");
         mainTitle.getStyleClass().add("page-title");
 
+        // Top toolbar with action buttons
         HBox headerButtonsBox = new HBox(10);
         headerButtonsBox.setAlignment(Pos.CENTER_LEFT);
         headerButtonsBox.getStyleClass().add("toolbar");
@@ -118,10 +173,12 @@ public class AdminWorkloadView {
         headerButtonsBox.getChildren().addAll(refreshBtn, exportBtn, aiAnalysisBtn,
                 setThresholdBtn, thresholdLabel, thresholdInput, backBtn);
 
+        // Card container for table and filters
         VBox whiteCard = new VBox(14);
         whiteCard.getStyleClass().add("surface-card");
         VBox.setVgrow(whiteCard, Priority.ALWAYS);
 
+        // Filter bar for TA name, course, and hiring MO
         HBox filterBar = new HBox(12);
         filterBar.setAlignment(Pos.CENTER_LEFT);
 
@@ -139,6 +196,7 @@ public class AdminWorkloadView {
 
         filterBar.getChildren().addAll(taNameFilter, courseFilter, moFilter, searchBtn, clearBtn);
 
+        // Initialize workload table
         workloadTable = new TableView<>();
         setupTableColumns();
         workloadTable.setItems(filteredData);
@@ -149,6 +207,7 @@ public class AdminWorkloadView {
 
         loadData();
 
+        // Set workload threshold and refresh
         setThresholdBtn.setOnAction(e -> {
             try {
                 currentThreshold = Double.parseDouble(thresholdInput.getText().trim());
@@ -160,16 +219,19 @@ public class AdminWorkloadView {
             }
         });
 
+        // Reload data from CSV
         refreshBtn.setOnAction(e -> {
             loadData();
             workloadTable.refresh();
             showAlert("Success", "Data refreshed from CSV files.");
         });
 
+        // Navigate back to dashboard
         backBtn.setOnAction(e -> {
             if (onBack != null) onBack.run();
         });
 
+        // Apply filters to dataset
         searchBtn.setOnAction(e -> {
             String ta = taNameFilter.getText().trim().toLowerCase();
             String crs = courseFilter.getText().trim().toLowerCase();
@@ -185,6 +247,7 @@ public class AdminWorkloadView {
             workloadTable.refresh();
         });
 
+        // Clear all filters
         clearBtn.setOnAction(e -> {
             taNameFilter.clear();
             courseFilter.clear();
@@ -194,6 +257,7 @@ public class AdminWorkloadView {
             workloadTable.refresh();
         });
 
+        // Export filtered data to CSV
         exportBtn.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Export CSV");
@@ -211,11 +275,16 @@ public class AdminWorkloadView {
             }
         });
 
+        // Run AI workload analysis
         aiAnalysisBtn.setOnAction(e -> runAiAnalysis());
 
         return root;
     }
 
+    /**
+     * Configures all columns for the workload table
+     * Includes conditional row styling for overloaded TAs
+     */
     private void setupTableColumns() {
         TableColumn<Admin, String> idCol = new TableColumn<>("TA ID");
         idCol.setCellValueFactory(new PropertyValueFactory<>("taId"));
@@ -238,6 +307,7 @@ public class AdminWorkloadView {
         TableColumn<Admin, Double> totCol = new TableColumn<>("Total Workload");
         totCol.setCellValueFactory(new PropertyValueFactory<>("totalWorkload"));
 
+        // Calculated excess amount column
         TableColumn<Admin, String> excCol = new TableColumn<>("Excess Details");
         excCol.setCellValueFactory(cellData -> {
             Admin item = cellData.getValue();
@@ -258,6 +328,7 @@ public class AdminWorkloadView {
 
         workloadTable.getColumns().addAll(idCol, nameCol, moCol, posCol, crsCol, weekCol, totCol, excCol, sugCol, dateCol);
 
+        // Highlight rows with excess workload in red
         workloadTable.setRowFactory(tv -> new TableRow<Admin>() {
             @Override
             protected void updateItem(Admin item, boolean empty) {
@@ -273,6 +344,10 @@ public class AdminWorkloadView {
         });
     }
 
+    /**
+     * Calculates excess workload for all records based on current threshold
+     * Sets suggestion and sorts by excess amount descending
+     */
     private void applyThreshold() {
         for (Admin a : masterData) {
             double excess = a.getTotalWorkload() - currentThreshold;
@@ -287,6 +362,10 @@ public class AdminWorkloadView {
         masterData.sort((a, b) -> Double.compare(b.getExcessAmount(), a.getExcessAmount()));
     }
 
+    /**
+     * Loads workload data from service and applies threshold
+     * Updates both master and filtered lists
+     */
     private void loadData() {
         try {
             List<Admin> data = adminService.getTaWorkload();
@@ -300,6 +379,11 @@ public class AdminWorkloadView {
         }
     }
 
+    /**
+     * Creates statistics tab showing workload by course and department
+     * Includes TA count, total workload, and average workload
+     * @return Parent node for statistics tab
+     */
     private Parent createStatsTab() {
         VBox root = new VBox(16);
         root.setPadding(new Insets(24));
@@ -325,6 +409,7 @@ public class AdminWorkloadView {
         tablesBox.setAlignment(Pos.TOP_LEFT);
         VBox.setVgrow(tablesBox, Priority.ALWAYS);
 
+        // Statistics by course
         VBox courseBox = new VBox(10);
         Label courseLabel = new Label("By Course");
         courseLabel.getStyleClass().add("section-title");
@@ -339,6 +424,7 @@ public class AdminWorkloadView {
         courseBox.getChildren().add(courseTable);
         HBox.setHgrow(courseBox, Priority.ALWAYS);
 
+        // Statistics by department
         VBox deptBox = new VBox(10);
         Label deptLabel = new Label("By Department");
         deptLabel.getStyleClass().add("section-title");
@@ -353,6 +439,7 @@ public class AdminWorkloadView {
         deptBox.getChildren().add(deptTable);
         HBox.setHgrow(deptBox, Priority.ALWAYS);
 
+        // Calculate statistics
         Map<String, StatRow> courseStats = new HashMap<>();
         Map<String, StatRow> deptStats = new HashMap<>();
 
@@ -374,6 +461,7 @@ public class AdminWorkloadView {
         tablesBox.getChildren().addAll(courseBox, deptBox);
         whiteCard.getChildren().add(tablesBox);
 
+        // Export statistics to CSV
         exportStatsBtn.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Export Stats");
@@ -399,12 +487,22 @@ public class AdminWorkloadView {
         return root;
     }
 
+    /**
+     * Creates a formatted table column for statistics
+     * @param title Column header
+     * @param property Property name for binding
+     * @return Configured TableColumn
+     */
     private TableColumn<StatRow, String> createStatCol(String title, String property) {
         TableColumn<StatRow, String> col = new TableColumn<>(title);
         col.setCellValueFactory(new PropertyValueFactory<>(property));
         return col;
     }
 
+    /**
+     * Executes AI-powered workload analysis in background thread
+     * Shows loading indicator and result dialog
+     */
     private void runAiAnalysis() {
         String apiKey = AIWorkloadService.getApiKeyFromEnv();
         if (apiKey == null || apiKey.isBlank()) {
@@ -424,6 +522,7 @@ public class AdminWorkloadView {
         List<Admin> dataSnapshot = new ArrayList<>(filteredData.isEmpty() ? masterData : filteredData);
         final String finalApiKey = apiKey;
 
+        // Show loading dialog
         Stage loadingStage = new Stage();
         loadingStage.initModality(Modality.APPLICATION_MODAL);
         loadingStage.initOwner(stage);
@@ -436,6 +535,7 @@ public class AdminWorkloadView {
         loadingStage.setScene(ThemeManager.createScene(loadingBox, 320, 160));
         loadingStage.show();
 
+        // Background task for AI analysis
         Task<String> task = new Task<>() {
             @Override
             protected String call() throws Exception {
@@ -460,6 +560,11 @@ public class AdminWorkloadView {
         thread.start();
     }
 
+    /**
+     * Displays AI analysis result in a formatted dialog
+     * Parses sections: verdict, assessment, at-risk TAs, actions
+     * @param analysisResult Raw AI response text
+     */
     private void showAiResultDialog(String analysisResult) {
         Stage resultStage = new Stage();
         resultStage.initModality(Modality.APPLICATION_MODAL);
@@ -471,7 +576,7 @@ public class AdminWorkloadView {
 
         Map<String, String> sections = parseSections(analysisResult);
 
-        // Verdict badge
+        // Verdict badge with color coding
         String verdictRaw = sections.getOrDefault("VERDICT", "").toUpperCase();
         String verdictText;
         String badgeClass;
@@ -494,6 +599,7 @@ public class AdminWorkloadView {
             bannerRow.setAlignment(Pos.CENTER_LEFT);
         }
 
+        // Section definitions for display
         String[][] sectionDefs = {
             {"ASSESSMENT", "Overall Assessment"},
             {"AT-RISK",    "At-Risk TAs"},
@@ -549,6 +655,12 @@ public class AdminWorkloadView {
         resultStage.show();
     }
 
+    /**
+     * Builds a styled card for a single analysis section
+     * @param title Section title
+     * @param body Section content
+     * @return Styled VBox card
+     */
     private VBox buildSectionCard(String title, String body) {
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("section-title");
@@ -561,6 +673,11 @@ public class AdminWorkloadView {
         return card;
     }
 
+    /**
+     * Parses AI response into labeled sections (VERDICT, ASSESSMENT, etc.)
+     * @param text Raw AI response
+     * @return Map of section keys to content
+     */
     private Map<String, String> parseSections(String text) {
         Map<String, String> result = new LinkedHashMap<>();
         String[] keys = {"ASSESSMENT", "AT-RISK", "ACTIONS", "VERDICT"};
@@ -579,6 +696,11 @@ public class AdminWorkloadView {
         return result;
     }
 
+    /**
+     * Shows a simple information alert dialog
+     * @param title Alert title
+     * @param msg Alert message
+     */
     private void showAlert(String title, String msg) {
         Alert a = new Alert(Alert.AlertType.INFORMATION);
         a.setTitle(title);
@@ -587,6 +709,10 @@ public class AdminWorkloadView {
         a.showAndWait();
     }
 
+    /**
+     * Helper class for statistics table rows
+     * Aggregates TA count, total workload, and average workload
+     */
     public static class StatRow {
         private String name;
         private Set<String> taIds = new HashSet<>();
@@ -597,6 +723,11 @@ public class AdminWorkloadView {
             this.totalWorkload = 0.0;
         }
 
+        /**
+         * Adds a TA's workload to the statistics
+         * @param taId Unique TA identifier
+         * @param workload Weekly workload hours
+         */
         public void add(String taId, double workload) {
             this.taIds.add(taId);
             this.totalWorkload += workload;
