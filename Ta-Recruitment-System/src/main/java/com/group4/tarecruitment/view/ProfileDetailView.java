@@ -113,6 +113,7 @@ public class ProfileDetailView {
         CheckBox cbTeaching = new CheckBox("Teaching");
         CheckBox cbPython = new CheckBox("Python");
         CheckBox cbOffice = new CheckBox("Office");
+        CheckBox cbMath = new CheckBox("Math");
 
         String oldSkills = safe(applicant.getSkillTags()).toLowerCase();
         cbJava.setSelected(oldSkills.contains("java"));
@@ -120,8 +121,9 @@ public class ProfileDetailView {
         cbTeaching.setSelected(oldSkills.contains("teaching"));
         cbPython.setSelected(oldSkills.contains("python"));
         cbOffice.setSelected(oldSkills.contains("office"));
+        cbMath.setSelected(oldSkills.contains("math"));
 
-        VBox skillsBox = new VBox(6, cbJava, cbEnglish, cbTeaching, cbPython, cbOffice);
+        VBox skillsBox = new VBox(6, cbJava, cbEnglish, cbTeaching, cbPython, cbOffice, cbMath);
 
         addFormRow(formGrid, 0, "TA ID:",              taIdField);
         addFormRow(formGrid, 1, "Student ID:",         studentIdField);
@@ -190,6 +192,7 @@ public class ProfileDetailView {
             if (cbTeaching.isSelected()) skillTags.append("Teaching,");
             if (cbPython.isSelected())   skillTags.append("Python,");
             if (cbOffice.isSelected())   skillTags.append("Office,");
+            if (cbMath.isSelected())     skillTags.append("Math,");
 
             if (skillTags.length() == 0) {
                 errors.append("Please select at least one skill.\n");

@@ -71,7 +71,7 @@ public class JobDetailView {
         matchTitle.getStyleClass().add("section-title");
 
         Label scoreLabel = new Label("Match: " + String.format("%.1f", matchResult.getMatchScore()) + "%");
-        scoreLabel.getStyleClass().addAll("badge", "badge-success");
+        scoreLabel.getStyleClass().addAll("badge", recommendationBadgeClass(matchResult.getRecommendationLevel()));
 
         Label matchedLabel = new Label("Matched Skills: " + formatList(matchResult.getMatchedSkills()));
         Label missingLabel = new Label("Missing Skills: " + formatList(matchResult.getMissingSkills()));

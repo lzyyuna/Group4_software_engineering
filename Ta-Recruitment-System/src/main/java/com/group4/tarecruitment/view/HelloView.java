@@ -73,7 +73,8 @@ public class HelloView {
         CheckBox cbTeaching = new CheckBox("Teaching");
         CheckBox cbPython = new CheckBox("Python");
         CheckBox cbOffice = new CheckBox("Office");
-        VBox skillsBox = new VBox(6, cbJava, cbEnglish, cbTeaching, cbPython, cbOffice);
+        CheckBox cbMath = new CheckBox("Math");
+        VBox skillsBox = new VBox(6, cbJava, cbEnglish, cbTeaching, cbPython, cbOffice, cbMath);
 
         Label contactLabel = labelOf("Contact Number:");
         TextField contactField = new TextField();
@@ -155,7 +156,7 @@ public class HelloView {
                 resultLabel.setText("Verifying...");
                 controller.createProfile(
                         studentIdField, nameField, emailField,
-                        coursesField, cbJava, cbEnglish, cbTeaching, cbPython, cbOffice,
+                        coursesField, cbJava, cbEnglish, cbTeaching, cbPython, cbOffice, cbMath,
                         contactField, resultLabel, submitBtn
                 );
             } else {

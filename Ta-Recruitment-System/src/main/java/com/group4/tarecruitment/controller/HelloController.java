@@ -40,13 +40,14 @@ public class HelloController {
      * @param cbTeaching teaching skill checkbox
      * @param cbPython Python skill checkbox
      * @param cbOffice Office skill checkbox
+     * @param cbMath Math skill checkbox
      * @param contactField field containing contact number
      * @param resultLabel label used to display validation or save results
      * @param submitBtn submit button used to resolve the current stage
      */
     public void createProfile(TextField studentIdField, TextField nameField, TextField emailField,
                               TextField coursesField, CheckBox cbJava, CheckBox cbEnglish,
-                              CheckBox cbTeaching, CheckBox cbPython, CheckBox cbOffice,
+                              CheckBox cbTeaching, CheckBox cbPython, CheckBox cbOffice, CheckBox cbMath,
                               TextField contactField, Label resultLabel, Button submitBtn) {
 
         String studentId = studentIdField.getText().trim();
@@ -61,6 +62,7 @@ public class HelloController {
         if (cbTeaching.isSelected()) skillTags.append("Teaching,");
         if (cbPython.isSelected()) skillTags.append("Python,");
         if (cbOffice.isSelected()) skillTags.append("Office,");
+        if (cbMath.isSelected()) skillTags.append("Math,");
         String skillStr = skillTags.length() > 0 ? skillTags.substring(0, skillTags.length() - 1) : "";
 
         if (studentId.isEmpty()) {
@@ -125,12 +127,13 @@ public class HelloController {
      * @param cbTeaching teaching skill checkbox
      * @param cbPython Python skill checkbox
      * @param cbOffice Office skill checkbox
+     * @param cbMath Math skill checkbox
      * @param contactField optional new contact number
      * @param resultLabel label used to display update results
      */
     public void editProfile(TextField studentIdField, TextField nameField, TextField emailField,
                             TextField coursesField, CheckBox cbJava, CheckBox cbEnglish,
-                            CheckBox cbTeaching, CheckBox cbPython, CheckBox cbOffice,
+                            CheckBox cbTeaching, CheckBox cbPython, CheckBox cbOffice, CheckBox cbMath,
                             TextField contactField, Label resultLabel) {
 
         String studentId = studentIdField.getText().trim();
@@ -154,12 +157,14 @@ public class HelloController {
             String contact = contactField.getText().trim().isEmpty() ? applicant.getContact() : contactField.getText().trim();
 
             StringBuilder skillTags = new StringBuilder();
-            if (cbJava.isSelected() || cbEnglish.isSelected() || cbTeaching.isSelected() || cbPython.isSelected() || cbOffice.isSelected()) {
+            if (cbJava.isSelected() || cbEnglish.isSelected() || cbTeaching.isSelected()
+                    || cbPython.isSelected() || cbOffice.isSelected() || cbMath.isSelected()) {
                 if (cbJava.isSelected()) skillTags.append("Java,");
                 if (cbEnglish.isSelected()) skillTags.append("English,");
                 if (cbTeaching.isSelected()) skillTags.append("Teaching,");
                 if (cbPython.isSelected()) skillTags.append("Python,");
                 if (cbOffice.isSelected()) skillTags.append("Office,");
+                if (cbMath.isSelected()) skillTags.append("Math,");
             } else {
                 skillTags.append(applicant.getSkillTags());
             }
@@ -183,7 +188,7 @@ public class HelloController {
             resultLabel.setText("Profile updated successfully!");
 
             clearFields(studentIdField, nameField, emailField, coursesField,
-                    cbJava, cbEnglish, cbTeaching, cbPython, cbOffice, contactField);
+                    cbJava, cbEnglish, cbTeaching, cbPython, cbOffice, cbMath, contactField);
 
         } catch (Exception e) {
             resultLabel.setStyle("-fx-text-fill: red;");
@@ -194,7 +199,7 @@ public class HelloController {
 
     private void clearFields(TextField studentIdField, TextField nameField, TextField emailField,
                              TextField coursesField, CheckBox cbJava, CheckBox cbEnglish,
-                             CheckBox cbTeaching, CheckBox cbPython, CheckBox cbOffice,
+                             CheckBox cbTeaching, CheckBox cbPython, CheckBox cbOffice, CheckBox cbMath,
                              TextField contactField) {
         studentIdField.clear();
         nameField.clear();
@@ -205,6 +210,7 @@ public class HelloController {
         cbTeaching.setSelected(false);
         cbPython.setSelected(false);
         cbOffice.setSelected(false);
+        cbMath.setSelected(false);
         contactField.clear();
     }
 }

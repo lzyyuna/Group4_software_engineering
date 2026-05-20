@@ -26,13 +26,14 @@ public class JobListView {
     private final JobService jobService = new JobService();
     private final SkillMatchService skillMatchService = new SkillMatchService();
 
-    private final int PAGE_SIZE = 3;
+    private final int PAGE_SIZE = 4;
     private int currentPage = 1;
     private CheckBox javaCb;
     private CheckBox englishCb;
     private CheckBox teachingCb;
     private CheckBox pythonCb;
     private CheckBox officeCb;
+    private CheckBox mathCb;
     private CheckBox strongOnlyCb;
     private ComboBox<String> typeCombo;
 
@@ -43,7 +44,7 @@ public class JobListView {
 
     public Parent createContent() {
         Label title = new Label("Available TA Positions");
-        title.getStyleClass().add("page-title");
+        title.getStyleClass().addAll("page-title", "job-list-title");
 
         Button refreshBtn = new Button("Refresh List");
         Button myAppsBtn = new Button("My Applications");
@@ -53,7 +54,7 @@ public class JobListView {
         myAppsBtn.getStyleClass().add("btn-purple");
         backToHomeBtn.getStyleClass().add("btn-muted");
 
-        HBox topBar = new HBox(10, refreshBtn, myAppsBtn, backToHomeBtn);
+        HBox topBar = new HBox(8, refreshBtn, myAppsBtn, backToHomeBtn);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.getStyleClass().add("toolbar");
 
@@ -62,6 +63,7 @@ public class JobListView {
         teachingCb = new CheckBox("Teaching");
         pythonCb = new CheckBox("Python");
         officeCb = new CheckBox("Office");
+        mathCb = new CheckBox("Math");
         strongOnlyCb = new CheckBox("Only show strong matches");
 
         typeCombo = new ComboBox<>();
@@ -81,9 +83,9 @@ public class JobListView {
         Label positionTypeLabel = new Label("Position Type:");
 
         HBox filterTopRow = new HBox(
-                10,
+                8,
                 skillTagLabel,
-                javaCb, englishCb, teachingCb, pythonCb, officeCb,
+                javaCb, englishCb, teachingCb, pythonCb, officeCb, mathCb,
                 typeGap,
                 positionTypeLabel,
                 typeCombo,
@@ -92,17 +94,17 @@ public class JobListView {
         );
         filterTopRow.setAlignment(Pos.CENTER_LEFT);
 
-        HBox filterSecondRow = new HBox(10, strongOnlyCb);
+        HBox filterSecondRow = new HBox(8, strongOnlyCb);
         filterSecondRow.setAlignment(Pos.CENTER_LEFT);
-        filterSecondRow.setPadding(new Insets(0, 0, 0, 92));
+        filterSecondRow.setPadding(new Insets(0, 0, 0, 88));
 
-        VBox filterBar = new VBox(6, filterTopRow, filterSecondRow);
+        VBox filterBar = new VBox(4, filterTopRow, filterSecondRow);
         filterBar.getStyleClass().add("filter-bar");
 
-        VBox jobListBox = new VBox(12);
+        VBox jobListBox = new VBox(6);
         jobListBox.getStyleClass().add("list-container");
 
-        HBox pageBox = new HBox(10);
+        HBox pageBox = new HBox(8);
         Button prevBtn = new Button("Previous");
         Button nextBtn = new Button("Next");
         Label pageLabel = new Label("Page 1");
@@ -151,6 +153,7 @@ public class JobListView {
         teachingCb.setOnAction(e -> refreshFilteredJobs(jobListBox, pageLabel));
         pythonCb.setOnAction(e -> refreshFilteredJobs(jobListBox, pageLabel));
         officeCb.setOnAction(e -> refreshFilteredJobs(jobListBox, pageLabel));
+        mathCb.setOnAction(e -> refreshFilteredJobs(jobListBox, pageLabel));
         strongOnlyCb.setOnAction(e -> refreshFilteredJobs(jobListBox, pageLabel));
         typeCombo.setOnAction(e -> refreshFilteredJobs(jobListBox, pageLabel));
         resetBtn.setOnAction(e -> {
@@ -159,15 +162,16 @@ public class JobListView {
             teachingCb.setSelected(false);
             pythonCb.setSelected(false);
             officeCb.setSelected(false);
+            mathCb.setSelected(false);
             strongOnlyCb.setSelected(false);
             typeCombo.setValue("All");
             currentPage = 1;
             loadJobs(jobListBox, pageLabel);
         });
 
-        VBox root = new VBox(14, title, topBar, filterBar, jobListBox, new Separator(), pageBox);
-        root.getStyleClass().add("app-page");
-        root.setPadding(new Insets(24));
+        VBox root = new VBox(8, title, topBar, filterBar, jobListBox, new Separator(), pageBox);
+        root.getStyleClass().addAll("app-page", "job-list-page");
+        root.setPadding(new Insets(14, 18, 12, 18));
         return root;
     }
 
@@ -211,6 +215,7 @@ public class JobListView {
         if (teachingCb.isSelected() && !skillRequirements.contains("teaching")) return false;
         if (pythonCb.isSelected() && !skillRequirements.contains("python")) return false;
         if (officeCb.isSelected() && !skillRequirements.contains("office")) return false;
+        if (mathCb.isSelected() && !skillRequirements.contains("math")) return false;
         if (strongOnlyCb.isSelected()) {
             SkillMatchResult match = skillMatchService.match(applicant, job);
             if (!"Strong Match".equals(match.getRecommendationLevel())) {
@@ -249,8 +254,8 @@ public class JobListView {
             for (Job job : pageJobs) {
                 SkillMatchResult match = skillMatchService.match(applicant, job);
 
-                VBox jobItem = new VBox(8);
-                jobItem.getStyleClass().add("list-item-card");
+                VBox jobItem = new VBox(4);
+                jobItem.getStyleClass().addAll("list-item-card", "job-list-card");
 
                 Label courseLabel = new Label(job.getCourseName() == null ? "Untitled Course" : job.getCourseName());
                 courseLabel.getStyleClass().add("section-title");
@@ -264,7 +269,7 @@ public class JobListView {
                 basicInfoLabel.getStyleClass().add("muted-text");
 
                 Label matchScoreLabel = new Label("Match: " + String.format("%.1f", match.getMatchScore()) + "%");
-                matchScoreLabel.getStyleClass().addAll("badge", "badge-success");
+                matchScoreLabel.getStyleClass().addAll("badge", recommendationBadgeClass(match.getRecommendationLevel()));
 
                 Label matchedSkillsLabel = new Label("Matched: " + formatList(match.getMatchedSkills()));
                 Label missingSkillsLabel = new Label("Missing: " + formatList(match.getMissingSkills()));
@@ -281,7 +286,7 @@ public class JobListView {
                     stage.setTitle("Job Details");
                 });
 
-                HBox matchInfoRow = new HBox(16, matchScoreLabel, matchedSkillsLabel, missingSkillsLabel);
+                HBox matchInfoRow = new HBox(12, matchScoreLabel, matchedSkillsLabel, missingSkillsLabel);
                 matchInfoRow.setAlignment(Pos.CENTER_LEFT);
 
                 HBox bottomBar = new HBox();

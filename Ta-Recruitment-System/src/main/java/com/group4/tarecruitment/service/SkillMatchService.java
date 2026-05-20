@@ -24,6 +24,7 @@ public class SkillMatchService {
         SKILL_KEYWORDS.put("English", List.of("english", "communication", "spoken english", "written english"));
         SKILL_KEYWORDS.put("Teaching", List.of("teaching", "tutor", "mentoring", "instruction"));
         SKILL_KEYWORDS.put("Office", List.of("office", "excel", "word", "powerpoint"));
+        SKILL_KEYWORDS.put("Math", List.of("math", "mathematics"));
     }
 
     /**
