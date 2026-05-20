@@ -285,6 +285,43 @@
     -fx-spacing: 12;
 }
 
+/* Compact TA job list page */
+.job-list-page .job-list-title {
+    -fx-font-size: 21px;
+}
+
+.job-list-page .button {
+    -fx-font-size: 12px;
+    -fx-padding: 6 14 6 14;
+}
+
+.job-list-page .check-box,
+.job-list-page .combo-box,
+.job-list-page .label {
+    -fx-font-size: 12px;
+}
+
+.job-list-page .filter-bar {
+    -fx-padding: 2 0 2 0;
+}
+
+.job-list-page .list-container {
+    -fx-padding: 6;
+}
+
+.job-list-page .job-list-card {
+    -fx-padding: 8 12 8 12;
+}
+
+.job-list-page .section-title {
+    -fx-font-size: 14px;
+}
+
+.job-list-page .badge {
+    -fx-font-size: 11px;
+    -fx-padding: 3 10 3 10;
+}
+
 /* ===== Status / Match Badges ===== */
 .badge {
     -fx-font-size: 12px;
