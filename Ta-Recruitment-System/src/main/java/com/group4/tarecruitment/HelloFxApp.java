@@ -6,10 +6,14 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import java.util.Locale;
+
 public class HelloFxApp extends Application {
 
     @Override
     public void start(Stage stage) {
+        Locale.setDefault(Locale.ENGLISH);
+
         RoleSelectView view = new RoleSelectView(stage);
         Scene scene = ThemeManager.createScene(view.createContent(), 1000, 700);
 
@@ -23,6 +27,7 @@ public class HelloFxApp extends Application {
     }
 
     public static void main(String[] args) {
+        Locale.setDefault(Locale.ENGLISH);
         launch();
     }
 }
